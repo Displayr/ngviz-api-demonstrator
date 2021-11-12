@@ -1,0 +1,30 @@
+{
+  "name": "@displayr/ngviz-example",
+  "version": "1.0.16",
+  "description": "An example next-generation visualization see https://github.com/Displayr/ngviz",
+  "main": "dist/index.js",
+  "scripts": {
+    "build-dev-deploy": "npx tsc && node esbuild.js && ..\\ngviz\\update_displayr_for_specific_viz.bat ngviz-example",
+    "build": "npx tsc && node esbuild.js "
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Displayr/ngvizExample.git"
+  },
+  "keywords": [],
+  "author": "",
+  "homepage": "https://github.com/Displayr/ngvizExample#readme",
+  "dependencies": {
+    "@displayr/ngviz": "^3.4.0",
+    "jquery": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.3.31",
+    "esbuild": "^0.13.9",
+    "esbuild-plugin-copy": "^0.2.0",
+    "typescript": "^3.5"
+  }
+}

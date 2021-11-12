@@ -1,0 +1,11 @@
+{
+    "assets": [
+        "assets/style.css"
+    ],
+    "display_name": "API Demonstrator",
+    "common_dependencies": [
+        "jquery"
+    ],
+    "other_dependencies": [
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "outDir": "./js",
+        "strict": true,
+        "moduleResolution": "node", /* Lets us find ngviz modules */
+        "typeRoots": [
+            "./node_modules/@types/",
+            "./core/"
+        ],
+        /* This deliberately excludes 'node' because it conflicts with web browser typings, e.g. return type of setTimeout() */
+        "types": [
+        ],
+        "allowSyntheticDefaultImports": true,  /* Lets us get types for jquery */
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "dist/**",
+        "js/**",
+        "docs/**"
+    ]
+}
