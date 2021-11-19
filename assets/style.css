@@ -4,3 +4,6 @@
 .ngviz-api-demo-subselected {
     border: thin solid black;
 }
+.ngviz-api-demo div {
+    padding: 0.5em;
+}

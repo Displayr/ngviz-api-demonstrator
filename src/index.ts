@@ -11,16 +11,21 @@ interface ViewState {
 export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     settings: IObjectInspectorSpecification;
     callbacks: INgvizCallbacks<ViewState>;
-    ngvizSelectedDiv: JQuery<HTMLDivElement>;
+    viewState: ViewState;
+    viewStateClickableDiv: JQuery<HTMLElement>;
     controlsDiv: JQuery<HTMLDivElement>;
+    ngvizSelectedDiv: JQuery<HTMLDivElement>;
+    subSelectableDiv: JQuery<HTMLElement>;
     subSelectableIsSelected: boolean = false;
     checkbox?: IObjectInspectorControl<boolean>;
+    colourPicker?: IObjectInspectorControl<string>;
 
     constructor(container: HTMLDivElement, edit_mode: boolean, settings: IObjectInspectorSpecification, view_state_to_restore: ViewState, callbacks: INgvizCallbacks<ViewState>, mode_state: INgvizModeState) {
         this.settings = settings;
-        this.callbacks = callbacks;
-        
-        const view_state = { clickCount: 0, ...view_state_to_restore };
+        this.callbacks = callbacks;        
+        this.viewState = view_state_to_restore;
+        if (!this.viewState.clickCount)
+            this.viewState.clickCount = 0;
 
         this.addCssStyleSheetInAsset('assets/style.css');
         container.className = 'ngviz-api-demo';
@@ -30,11 +35,13 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         const mode_div = $(`<div>This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.</div>`);
         const styled_div = $('<div>This ngviz should be surrounded by a double red border, which comes from assets/style.css</div>');
 
-        const clickable_div = $('<div>This text been clicked <span>0</span> times, which will be persisted in view state.</div>')
+        this.viewStateClickableDiv = $('<div>This text been clicked <span>???</span> times, which will be persisted in view state.</div>')
             .on('click', () => {
-                clickable_div.find('span').text(++ view_state.clickCount);
-                callbacks.viewStateChanged(view_state);
+                this.viewState.clickCount! ++;
+                this.updateClickCount();
+                callbacks.viewStateChanged(this.viewState);
             });
+        this.updateClickCount();
 
         this.controlsDiv = $('<div>The checkbox in the object inspector is <span>?</span>.</div>');
         this.updateTextForCheckboxState();
@@ -42,21 +49,22 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.ngvizSelectedDiv = $('<div>This ngviz is <span>???</span>selected in Displayr.</div>');
         this.selected(false);  // to give it an initial value
 
-        const subselect_div = $('<div>You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.</div>')
+        this.subSelectableDiv = $('<div>You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.</div>')
             .on('click', (event) => {
                 this.subSelectableIsSelected = true;
-                subselect_div.addClass('ngviz-api-demo-subselected');
+                this.subSelectableDiv.addClass('ngviz-api-demo-subselected');
                 callbacks.showSubObjectInspector(true);
                 event.stopPropagation();
             });
         $(container).on('click', () => {
             // Click anywhere else removes selectino.
             this.subSelectableIsSelected = false;
-            subselect_div.removeClass('ngviz-api-demo-subselected');
+            this.subSelectableDiv.removeClass('ngviz-api-demo-subselected');
             callbacks.showSubObjectInspector(null);
-        })
+        });
+        this.updateColourForSelection();
 
-        $(container).append(mode_div, styled_div, clickable_div, this.controlsDiv, this.ngvizSelectedDiv, subselect_div);
+        $(container).append(mode_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv);
         callbacks.renderFinished();
     }
 
@@ -73,16 +81,25 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.checkbox = this.settings.checkBox({label: 'Checkbox', page: 'Inputs', group: 'Data Source', 
                                                 change: () => this.updateTextForCheckboxState()});
         const sub_object_selected = !!token;
-        const sub_selection = this.settings.getSubContext('SubSelection');
-        sub_selection.colorPicker({label: 'Color of selected text', visible: sub_object_selected});
+        const sub_selection_context = this.settings.getSubContext('SubSelection');
+        this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: !!sub_object_selected,
+                                                               change: () => this.updateColourForSelection()});
     }
 
     updateTextForCheckboxState() {
         this.controlsDiv.find('span').text(this.checkbox!.getValue() ? 'checked' : 'not checked');
     }
 
+    updateClickCount() {
+        this.viewStateClickableDiv.find('span').text(this.viewState.clickCount!);
+    }
+
     selected(is_selected: boolean): void {
         this.ngvizSelectedDiv.find('span').text(is_selected ? '' : 'not ');
+    }
+
+    updateColourForSelection() {
+        this.subSelectableDiv.css('color', this.colourPicker!.getValue());
     }
 
     resizedOrDragged() {

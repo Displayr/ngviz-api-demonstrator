@@ -12,11 +12,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Displayr/ngvizExample.git"
+    "url": "git+https://github.com/Displayr/ngvizApiDemonstrator.git"
   },
   "keywords": [],
   "author": "",
-  "homepage": "https://github.com/Displayr/ngvizExample#readme",
+  "homepage": "https://github.com/Displayr/ngvizApiDemonstrator#readme",
   "dependencies": {
     "@displayr/ngviz": "^3.5.0",
     "jquery": "^3.6.0"
