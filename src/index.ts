@@ -65,7 +65,6 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateColourForSelection();
 
         $(container).append(mode_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv);
-        callbacks.renderFinished();
     }
 
     addCssStyleSheetInAsset(asset: string) {
@@ -84,6 +83,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         const sub_selection_context = this.settings.getSubContext('SubSelection');
         this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: !!sub_object_selected,
                                                                change: () => this.updateColourForSelection()});
+        this.callbacks.renderFinished();
     }
 
     updateTextForCheckboxState() {
