@@ -28,11 +28,21 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             this.viewState.clickCount = 0;
 
         this.addCssStyleSheetInAsset('assets/style.css');
+        const font = mode_state.baseFont;
+        if (font)
+            $(container).css({
+                'font-family': font.family,
+                'font-size': font.size + 'pt',
+                'font-weight': font.bold ? 'bold' : 'normal',
+                'font-style': font.italic ? 'italic' : 'normal',
+                'text-decoration': font.underline ? (font.strikeout ? 'underline line-through' : 'underline') : (font.strikeout ? 'line-through' : 'none')
+            });
         container.className = 'ngviz-api-demo';
 
         this.refreshObjectInspector(null);
 
         const mode_div = $(`<div>This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.</div>`);
+        const font_div = $(`<div>Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.</div>`);
         const styled_div = $('<div>This ngviz should be surrounded by a double red border, which comes from assets/style.css</div>');
 
         this.viewStateClickableDiv = $('<div>This text been clicked <span>???</span> times, which will be persisted in view state.</div>')
@@ -64,7 +74,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         });
         this.updateColourForSelection();
 
-        $(container).append(mode_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv);
+        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv);
     }
 
     addCssStyleSheetInAsset(asset: string) {
