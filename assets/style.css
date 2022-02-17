@@ -1,9 +1,15 @@
 .ngviz-api-demo {
     border: thick double red;
+    display: flex;
+    flex-direction: column;
 }
 .ngviz-api-demo-subselected {
     border: thin solid black;
 }
 .ngviz-api-demo div {
     padding: 0.5em;
+}
+.ngviz-api-demo div.dropBoxData {
+    flex-grow: 1;
+    overflow: scroll;
 }

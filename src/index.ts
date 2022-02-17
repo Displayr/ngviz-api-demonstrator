@@ -16,9 +16,11 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     controlsDiv: JQuery<HTMLDivElement>;
     ngvizSelectedDiv: JQuery<HTMLDivElement>;
     subSelectableDiv: JQuery<HTMLElement>;
+    dropBoxDataDiv: JQuery<HTMLPreElement>;
     subSelectableIsSelected: boolean = false;
     checkbox?: IObjectInspectorControl<boolean>;
     colourPicker?: IObjectInspectorControl<string>;
+    dropBox?: IObjectInspectorControl<string[]>;
 
     constructor(container: HTMLDivElement, edit_mode: boolean, settings: IObjectInspectorSpecification, view_state_to_restore: ViewState, callbacks: INgvizCallbacks<ViewState>, mode_state: INgvizModeState) {
         this.settings = settings;
@@ -74,7 +76,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         });
         this.updateColourForSelection();
 
-        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv);
+        this.dropBoxDataDiv = $('<div class="dropBoxData"></div>');
+        this.updateDropBoxData();
+
+        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, this.dropBoxDataDiv);
     }
 
     addCssStyleSheetInAsset(asset: string) {
@@ -89,6 +94,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     refreshObjectInspector(token?: any) {
         this.checkbox = this.settings.checkBox({label: 'Checkbox', page: 'Inputs', group: 'Data Source', 
                                                 change: () => this.updateTextForCheckboxState()});
+        this.dropBox = this.settings.dropBox({label: 'Data', name: 'inputData', page: 'Inputs', group: 'Data Source', types: ['table', 'ritem'],
+                                              dataChange: () => this.updateDropBoxData()});
         const sub_object_selected = !!token;
         const sub_selection_context = this.settings.getSubContext('SubSelection');
         this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: !!sub_object_selected,
@@ -98,6 +105,11 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     updateTextForCheckboxState() {
         this.controlsDiv.find('span').text(this.checkbox!.getValue() ? 'checked' : 'not checked');
+    }
+
+    updateDropBoxData() {
+        const data = this.dropBox?.getData();
+        this.dropBoxDataDiv.text(data ? JSON.stringify(data) : '- No data selected in drop box -');
     }
 
     updateClickCount() {
