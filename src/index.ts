@@ -94,7 +94,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     refreshObjectInspector(token?: any) {
         this.checkbox = this.settings.checkBox({label: 'Checkbox', page: 'Inputs', group: 'Data Source', 
                                                 change: () => this.updateTextForCheckboxState()});
-        this.dropBox = this.settings.dropBox({label: 'Data', name: 'inputData', page: 'Inputs', group: 'Data Source', types: ['table', 'ritem'],
+        this.dropBox = this.settings.dropBox({label: 'Dropdown (called inputData)', name: 'inputData', page: 'Inputs', group: 'Data Source', types: ['table', 'ritem'],
                                               dataChange: () => this.updateDropBoxData()});
         const sub_object_selected = !!token;
         const sub_selection_context = this.settings.getSubContext('SubSelection');
