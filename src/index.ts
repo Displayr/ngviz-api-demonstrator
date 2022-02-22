@@ -1,5 +1,6 @@
 import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, TabularData, INgvizModeState, ITabularDataForJson } from '@displayr/ngviz';
 import $ from 'jquery';
+import * as Plotly from 'plotly.js';
 
 interface ViewState {
     clickCount?: number;
@@ -79,7 +80,14 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.dropBoxDataDiv = $('<div class="dropBoxData"></div>');
         this.updateDropBoxData();
 
-        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, this.dropBoxDataDiv);
+        const plotly_div = $('<div style="height:300px"></div>');
+        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
+
+        var data = [{
+            x: [1, 2, 3],
+            y: [10, 15, 13]
+        }];
+        Plotly.newPlot(plotly_div[0], <any>data);          
     }
 
     addCssStyleSheetInAsset(asset: string) {

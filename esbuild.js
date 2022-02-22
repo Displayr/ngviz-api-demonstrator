@@ -6,7 +6,7 @@ require('esbuild').build({
     format: 'cjs',  // Needed to produce something we can eval()
     target: 'es6',
     outfile: 'dist/index.js',
-    external: ['jquery'],
+    external: ['jquery', 'plotly.js'],
     plugins: [
         copy({
             verbose: false,
