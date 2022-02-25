@@ -10,8 +10,10 @@ interface ViewState {
  * See README.md.
  */
 export default class NgvizApiDemonstrator implements INgviz<ViewState> {
+    container: HTMLDivElement;
     settings: IObjectInspectorSpecification;
     callbacks: INgvizCallbacks<ViewState>;
+    sizeDiv: JQuery<HTMLDivElement>;
     viewState: ViewState;
     viewStateClickableDiv: JQuery<HTMLElement>;
     controlsDiv: JQuery<HTMLDivElement>;
@@ -24,6 +26,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     dropBox?: IObjectInspectorControl<string[]>;
 
     constructor(container: HTMLDivElement, edit_mode: boolean, settings: IObjectInspectorSpecification, view_state_to_restore: ViewState, callbacks: INgvizCallbacks<ViewState>, mode_state: INgvizModeState) {
+        this.container = container;
         this.settings = settings;
         this.callbacks = callbacks;        
         this.viewState = view_state_to_restore;
@@ -45,6 +48,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.refreshObjectInspector();
 
         const mode_div = $(`<div>This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.</div>`);
+        this.sizeDiv = $(`<div>Its size <span>???</span></div>`);
+        this.updateSizeDiv();
         const font_div = $(`<div>Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.</div>`);
         const styled_div = $('<div>This ngviz should be surrounded by a double red border, which comes from assets/style.css</div>');
 
@@ -82,7 +87,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateDropBoxData();
 
         const plotly_div = $('<div style="height:300px"></div>');
-        $(container).append(mode_div, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
+        $(container).append(mode_div, this.sizeDiv, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
 
         var data = [{
             x: [1, 2, 3],
@@ -113,6 +118,12 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.callbacks.renderFinished();
     }
 
+    updateSizeDiv() {
+        const rect = this.container.getBoundingClientRect();
+        const text = `is ${Math.round(rect.width)}x${Math.round(rect.height)} at ${Math.round(rect.left)},${Math.round(rect.top)}`;
+        this.sizeDiv.find('span').text(text);
+    }
+
     updateTextForCheckboxState() {
         this.controlsDiv.find('span').text(this.checkbox!.getValue() ? 'checked' : 'not checked');
     }
@@ -135,7 +146,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     }
 
     resizedOrDragged() {
-        // This visualization doesn't care whether it is resized or dragged, but others
-        // might want to redo layout.
+        this.updateSizeDiv();
+        this.callbacks.renderFinished();
     }
 }
