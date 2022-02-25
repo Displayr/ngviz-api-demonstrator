@@ -18,7 +18,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     ngvizSelectedDiv: JQuery<HTMLDivElement>;
     subSelectableDiv: JQuery<HTMLElement>;
     dropBoxDataDiv: JQuery<HTMLPreElement>;
-    subSelectableIsSelected: boolean = false;
+    subSelectableIsSelected: boolean;
     checkbox?: IObjectInspectorControl<boolean>;
     colourPicker?: IObjectInspectorControl<string>;
     dropBox?: IObjectInspectorControl<string[]>;
@@ -42,7 +42,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             });
         container.className = 'ngviz-api-demo';
 
-        this.refreshObjectInspector(null);
+        this.refreshObjectInspector();
 
         const mode_div = $(`<div>This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.</div>`);
         const font_div = $(`<div>Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.</div>`);
@@ -62,18 +62,19 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.ngvizSelectedDiv = $('<div>This ngviz is <span>???</span>selected in Displayr.</div>');
         this.selected(false);  // to give it an initial value
 
+        this.subSelectableIsSelected = false;
         this.subSelectableDiv = $('<div>You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.</div>')
             .on('click', (event) => {
                 this.subSelectableIsSelected = true;
                 this.subSelectableDiv.addClass('ngviz-api-demo-subselected');
-                callbacks.showSubObjectInspector(true);
+                this.refreshObjectInspector();
                 event.stopPropagation();
             });
         $(container).on('click', () => {
             // Click anywhere else removes selectino.
             this.subSelectableIsSelected = false;
             this.subSelectableDiv.removeClass('ngviz-api-demo-subselected');
-            callbacks.showSubObjectInspector(null);
+            this.refreshObjectInspector();
         });
         this.updateColourForSelection();
 
@@ -99,15 +100,16 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         head.appendChild(link);  
     }
 
-    refreshObjectInspector(token?: any) {
+    refreshObjectInspector() {
+        this.callbacks.clearSettings();
         this.checkbox = this.settings.checkBox({label: 'Checkbox', page: 'Inputs', group: 'Data Source', 
                                                 change: () => this.updateTextForCheckboxState()});
         this.dropBox = this.settings.dropBox({label: 'Dropdown (called inputData)', name: 'inputData', page: 'Inputs', group: 'Data Source', types: ['table', 'ritem'],
                                               dataChange: () => this.updateDropBoxData()});
-        const sub_object_selected = !!token;
         const sub_selection_context = this.settings.getSubContext('SubSelection');
-        this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: !!sub_object_selected,
+        this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: this.subSelectableIsSelected,
                                                                change: () => this.updateColourForSelection()});
+        this.callbacks.updateObjectInspector();
         this.callbacks.renderFinished();
     }
 
@@ -133,7 +135,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     }
 
     resizedOrDragged() {
-        // This visualization doesn't care whether it is resized or dragged, but other
+        // This visualization doesn't care whether it is resized or dragged, but others
         // might want to redo layout.
     }
 }
