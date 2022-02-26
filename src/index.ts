@@ -86,14 +86,14 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.dropBoxDataDiv = $('<div class="dropBoxData"></div>');
         this.updateDropBoxData();
 
-        const plotly_div = $('<div style="height:300px"></div>');
+        const plotly_div = $('<div style="height:150px"></div>');
         $(container).append(mode_div, this.sizeDiv, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
 
         var data = [{
             x: [1, 2, 3],
             y: [10, 15, 13]
         }];
-        Plotly.newPlot(plotly_div[0], <any>data);          
+        Plotly.newPlot(plotly_div[0], <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});          
     }
 
     addCssStyleSheetInAsset(asset: string) {
