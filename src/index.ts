@@ -51,6 +51,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.sizeDiv = $(`<div>Its size <span>???</span></div>`);
         this.updateSizeDiv();
         const font_div = $(`<div>Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.</div>`);
+        const colours_div = $(`<div>The available colour palette is: </div>`)
+            .append(mode_state.colorPalette.map(c => $(`<span style="background-color:rgb(${c}); width: 2em; display: inline-block")>&nbsp;</span>`)));
         const styled_div = $('<div>This ngviz should be surrounded by a double red border, which comes from assets/style.css</div>');
 
         this.viewStateClickableDiv = $('<div>This text been clicked <span>???</span> times, which will be persisted in view state.</div>')
@@ -87,22 +89,22 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateDropBoxData();
 
         const plotly_div = $('<div style="height:150px"></div>');
-        $(container).append(mode_div, this.sizeDiv, font_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
+        $(container).append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
 
         var data = [{
             x: [1, 2, 3],
             y: [10, 15, 13]
         }];
-        Plotly.newPlot(plotly_div[0], <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});          
+        Plotly.newPlot(plotly_div[0], <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
     }
 
     addCssStyleSheetInAsset(asset: string) {
-        var head = document.getElementsByTagName('HEAD')[0];  
-        var link = document.createElement('link'); 
-        link.rel = 'stylesheet';        
-        link.type = 'text/css';       
-        link.href = this.callbacks.getAssetPathFor(asset);  
-        head.appendChild(link);  
+        var head = document.getElementsByTagName('HEAD')[0];
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = this.callbacks.getAssetPathFor(asset);
+        head.appendChild(link);
     }
 
     refreshObjectInspector() {
