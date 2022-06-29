@@ -9,7 +9,7 @@
         {
             "exportedAs": "Plotly",
             "packageName": "plotly.js",
-            "url": "https://cdn.plot.ly/plotly-2.9.0.min.js"
+            "url": "https://cdn.plot.ly/plotly-2.11.1.min.js"
         }
     ]
 }
