@@ -16,5 +16,5 @@ deploy:
   provider: script
   script: npm publish 
   on:
-    repo: Displayr/ngvizApiDemonstrator
+    repo: Displayr/ngviz-api-demonstrator
     branch: master
