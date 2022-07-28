@@ -33,7 +33,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         if (!this.viewState.clickCount)
             this.viewState.clickCount = 0;
 
-        this.addCssStyleSheetInAsset('assets/style.css');
+        callbacks.loadStylesheet(callbacks.getAssetPathFor('assets/style.css'));  // returns a promise
+        
         const font = mode_state.baseFont;
         if (font)
             $(container).css({
@@ -96,15 +97,6 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             y: [10, 15, 13]
         }];
         Plotly.newPlot(plotly_div[0], <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
-    }
-
-    addCssStyleSheetInAsset(asset: string) {
-        var head = document.getElementsByTagName('HEAD')[0];
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = this.callbacks.getAssetPathFor(asset);
-        head.appendChild(link);
     }
 
     refreshObjectInspector() {

@@ -22,7 +22,7 @@
   "author": "",
   "homepage": "https://github.com/Displayr/ngviz-api-demonstrator#readme",
   "dependencies": {
-    "@displayr/ngviz": "^3.11.0",
+    "@displayr/ngviz": "^3.15.8",
     "jquery": "^3.6.0",
     "plotly.js": "^2.11.1"
   },
