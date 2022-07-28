@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/jquery": "^3.3.31",
+    "@types/node": "^18.6.2",
     "@types/plotly.js": "^1.54.20",
     "esbuild": "^0.13.9",
     "esbuild-plugin-copy": "^0.2.0",
