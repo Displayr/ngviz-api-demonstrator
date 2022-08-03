@@ -1,6 +1,6 @@
 import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, TabularData, INgvizModeState, ITabularDataForJson } from '@displayr/ngviz';
 import $ from 'jquery';
-import * as Plotly from 'plotly.js';
+import * as Plotly from 'plotly.js-dist-min';
 
 interface ViewState {
     clickCount?: number;
