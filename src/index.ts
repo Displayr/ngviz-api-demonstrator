@@ -105,7 +105,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
                                                 change: () => this.updateTextForCheckboxState()});
         const dropbox_types_text = this.settings.textBox({label: 'Types available in dropbox', prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types', change: () => {}});
         const types_available = dropbox_types_text.getValue() || 'table';
-        this.dropBox = this.settings.dropBox({label: 'Dropdown (called inputData)', name: 'inputData', page: 'Inputs', group: 'Data Source', types: [types_available],
+        this.dropBox = this.settings.dropBox({label: 'Dropdown (called primaryData)', name: 'primaryData', page: 'Inputs', group: 'Data Source', types: [types_available],
                                               dataChange: () => this.updateDropBoxData(), change: () => {}});
         const sub_selection_context = this.settings.getSubContext('SubSelection');
         this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: this.subSelectableIsSelected,
