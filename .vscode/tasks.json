@@ -13,7 +13,7 @@
 			"detail": "npx tsc && node esbuild.js && ..\\ngviz\\update_displayr_for_specific_viz.bat ngviz-api-demonstrator",
 			"options": {
 				"env": {
-					"QROOT": "c:\\q2"
+					"QROOT": "c:\\q1"
 				}	 	
 			}
 		}
