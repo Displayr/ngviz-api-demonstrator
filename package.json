@@ -1,6 +1,6 @@
 {
   "name": "@displayr/ngviz-api-demonstrator",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "As simple as possible an ngviz that demonstrates writing an ngviz against the API, without delving into all the different control types",
   "keywords": [],
   "homepage": "https://github.com/Displayr/ngviz-api-demonstrator#readme",
@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@displayr/ngviz": "^4.0.0-alpha.3",
-    "@displayr/ngviz-api-implementation": "^2.0.0-alpha.2",
     "@types/node": "^18.6.2",
     "@types/plotly.js-dist-min": "^2.3.0",
     "esbuild": "^0.12.25",
