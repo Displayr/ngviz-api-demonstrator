@@ -1,4 +1,4 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState } from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 
 interface ViewState {
@@ -25,6 +25,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     addNWarnings?: IObjectInspectorControl<number>;
     colourPicker?: IObjectInspectorControl<string>;
     dropBox?: IObjectInspectorControl<string[]>;
+    hostDrawing?: IObjectInspectorControl<string>;
 
     constructor(container: HTMLDivElement, edit_mode: boolean, settings: IObjectInspectorSpecification, view_state_to_restore: ViewState, callbacks: INgvizCallbacks<ViewState>, mode_state: INgvizModeState) {
         function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
@@ -116,6 +117,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         const types_available = dropbox_types_text.getValue() || 'table';
         this.dropBox = this.settings.dropBox({label: 'Dropdown (called primaryData)', name: 'primaryData', page: 'Inputs', group: 'Data Source', types: [types_available],
                                               data_change: () => this.updateDropBoxData(), change: () => {}});
+        this.hostDrawing = this.settings.comboBox({label: 'Host should draw', alternatives: ['None', 'EncouragementToSelectData', 'Errors'], default_value: 'None', change: () => this.refreshObjectInspector()});
         this.addNErrors = this.settings.numericUpDown({label: 'Add this number of errors', default_value: 0, change: () => this.refreshObjectInspector()});
         this.addNWarnings = this.settings.numericUpDown({label: 'Add this number of warnings', default_value: 0, change: () => this.refreshObjectInspector()});
         const sub_selection_context = this.settings.getSubContext('SubSelection');
@@ -135,7 +137,15 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.callbacks.setErrorsAndWarnings({
             error:   messages(nerrors),
             warning: messages(nwarnings)
-        });
+        }, this.hostDrawFromControl());
+    }
+
+    hostDrawFromControl(): HostDrawFlag {
+        const host_draw_value = this.hostDrawing!.getValue();        
+        const host_draw_enum = ((<any>HostDrawFlag)[host_draw_value]);
+        if (host_draw_enum === undefined)
+            throw new Error('Could not find HostDrawFlag name '+host_draw_value);
+        return <HostDrawFlag>host_draw_enum;
     }
 
     updateSizeDiv() {
