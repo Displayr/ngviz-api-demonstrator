@@ -135,8 +135,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         const nerrors = this.addNErrors?.getValue()!;
         const nwarnings = this.addNWarnings?.getValue()!;
         this.callbacks.setErrorsAndWarnings({
-            error:   messages(nerrors),
-            warning: messages(nwarnings)
+            errors: messages(nerrors).map(m => { return { message: m } }),
+            warnings: messages(nwarnings).map(m => { return { message: m } })
         }, this.hostDrawFromControl());
     }
 
