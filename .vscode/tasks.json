@@ -3,14 +3,14 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "build-dev-deploy",
+			"script": "build:deploy:dev",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: build-dev-deploy",
-			"detail": "npx tsc && node esbuild.js && ..\\ngviz\\update_displayr_for_specific_viz.bat ngviz-api-demonstrator",
+			"label": "npm: build:deploy:dev",
+			"detail": "npm run build:deploy:dev",
 			"options": {
 				"env": {
 					"QROOT": "c:\\q1"
