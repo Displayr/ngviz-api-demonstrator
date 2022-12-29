@@ -1,6 +1,6 @@
 {
   "name": "@displayr/ngviz-api-demonstrator",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "As simple as possible an ngviz that demonstrates writing an ngviz against the API, without delving into all the different control types",
   "keywords": [],
   "homepage": "https://github.com/Displayr/ngviz-api-demonstrator#readme",
@@ -16,7 +16,8 @@
   },
   "scripts": {
     "build": "npm run typecheck && node esbuild.js ",
-    "build-dev-deploy": "npm run typecheck && node esbuild.js && ..\\ngviz\\update_displayr_for_specific_viz.bat ngviz-api-demonstrator",
+    "build:deploy:dev": "npm run build && npm run deploy:dev",
+    "deploy:dev": "update_displayr_for_specific_viz",
     "typecheck": "npx tsc --noEmit"
   },
   "devDependencies": {
