@@ -1,5 +1,13 @@
 version: 2.1
 
+workflows:
+  build:
+    jobs:
+      - build:
+          context:
+            - circleci-api
+            - ngviz
+
 jobs:
   build:
     docker:
@@ -33,3 +41,10 @@ jobs:
             - run:
                 name: Publish package
                 command: npm publish
+            - run:
+                name: Trigger ngviz-server to deploy ngviz assets to blob storage
+                command: |
+                  curl --request POST https://circleci.com/api/v2/project/gh/Displayr/ngviz-server/pipeline \
+                    --header "Circle-Token: $CIRCLE_API_TOKEN" \
+                    --header "content-type: application/json" \
+                    --data  '{"branch":"master","parameters":{"deploy-blobs":true}}'
