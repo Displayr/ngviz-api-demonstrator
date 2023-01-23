@@ -6,6 +6,7 @@ workflows:
       - build:
           context:
             - circleci-api
+            - ngviz
 
 jobs:
   build:
