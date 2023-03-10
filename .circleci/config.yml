@@ -40,7 +40,7 @@ jobs:
           steps:
             - run:
                 name: Publish package
-                command: npm publish
+                command: npm publish --tag next
             - run:
                 name: Trigger ngviz-server to deploy ngviz assets to blob storage
                 command: |
