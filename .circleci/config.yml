@@ -47,4 +47,4 @@ jobs:
                   curl --request POST https://circleci.com/api/v2/project/gh/Displayr/ngviz-server/pipeline \
                     --header "Circle-Token: $CIRCLE_API_TOKEN" \
                     --header "content-type: application/json" \
-                    --data  '{"branch":"master","parameters":{"deploy-blobs":true}}'
+                    --data  '{"branch":"master","parameters":{"deploy-blobs":true, "deploy-blobs-tag": "next"}}'
