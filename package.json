@@ -16,8 +16,6 @@
   },
   "scripts": {
     "build": "npm run typecheck && node esbuild.js ",
-    "build:deploy:dev": "npm run build && npm run deploy:dev",
-    "deploy:dev": "update_displayr_for_specific_viz",
     "typecheck": "npx tsc --noEmit"
   },
   "devDependencies": {
