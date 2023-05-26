@@ -179,4 +179,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateSizeDiv();
         this.callbacks.renderFinished();
     }
+
+    validateNgvizConstructor() {
+        return NgvizApiDemonstrator;
+    }
 }

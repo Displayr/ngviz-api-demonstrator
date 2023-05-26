@@ -19,7 +19,7 @@
     "typecheck": "npx tsc --noEmit"
   },
   "devDependencies": {
-    "@displayr/ngviz": "^4.4.2",
+    "@displayr/ngviz": "^4.6.8",
     "@types/node": "^18.6.2",
     "@types/plotly.js-dist-min": "^2.3.0",
     "esbuild": "^0.12.25",
