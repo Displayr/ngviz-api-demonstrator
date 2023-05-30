@@ -122,13 +122,13 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types',
             change: () => this.refreshObjectInspector(),
         });
-        const types_available = dropbox_types_text.getValue() || 'table';
+        const types_available: string = dropbox_types_text.getValue() || 'table';
         this.dropBox = this.settings.dropBox({
             label: 'Dropdown (called primaryData)',
             name: 'primaryData',
             page: 'Inputs',
             group: 'Data Source',
-            types: [types_available],
+            types: types_available.split(';').map(s => s.trim()).filter(Boolean),
             data_change: () => this.updateDropBoxData(),
             change: () => {},
         });
