@@ -111,12 +111,28 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     refreshObjectInspector() {
         this.callbacks.clearSettings();
-        this.checkbox = this.settings.checkBox({label: 'Checkbox', page: 'Inputs', group: 'Data Source', 
-                                                change: () => this.updateTextForCheckboxState()});
-        const dropbox_types_text = this.settings.textBox({label: 'Types available in dropbox', prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types', change: () => this.refreshObjectInspector()});
-        const types_available = dropbox_types_text.getValue() || 'table';
-        this.dropBox = this.settings.dropBox({label: 'Dropdown (called primaryData)', name: 'primaryData', page: 'Inputs', group: 'Data Source', types: [types_available],
-                                              data_change: () => this.updateDropBoxData(), change: () => {}});
+        this.checkbox = this.settings.checkBox({
+            label: 'Checkbox',
+            page: 'Inputs',
+            group: 'Data Source',
+            change: () => this.updateTextForCheckboxState(),
+        });
+        const dropbox_types_text = this.settings.textBox({
+            label: 'Types available in dropbox',
+            prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types',
+            change: () => this.refreshObjectInspector(),
+        });
+        const types_available: string = dropbox_types_text.getValue() || 'table';
+        this.dropBox = this.settings.dropBox({
+            label: 'Dropdown (called primaryData)',
+            name: 'primaryData',
+            page: 'Inputs',
+            group: 'Data Source',
+            multi: true,
+            types: types_available.split(';').map(s => s.trim()).filter(Boolean),
+            data_change: () => this.updateDropBoxData(),
+            change: () => {},
+        });
         this.hostDrawing = this.settings.comboBox({label: 'Host should draw', alternatives: ['None', 'EncouragementToSelectData', 'Errors'], default_value: 'None', change: () => this.refreshObjectInspector()});
         this.addNErrors = this.settings.numericUpDown({label: 'Add this number of errors', default_value: 0, change: () => this.refreshObjectInspector()});
         this.addNWarnings = this.settings.numericUpDown({label: 'Add this number of warnings', default_value: 0, change: () => this.refreshObjectInspector()});
