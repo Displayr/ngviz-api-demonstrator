@@ -128,6 +128,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             name: 'primaryData',
             page: 'Inputs',
             group: 'Data Source',
+            multi: true,
             types: types_available.split(';').map(s => s.trim()).filter(Boolean),
             data_change: () => this.updateDropBoxData(),
             change: () => {},
