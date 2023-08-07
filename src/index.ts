@@ -55,7 +55,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         }
         container.className = 'ngviz-api-demo';
 
-        this.refreshObjectInspector();
+        this.refreshObjectInspector(false);
 
         const mode_div = create('div', {}, `This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.`);
         this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
@@ -107,9 +107,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             y: [10, 15, 13]
         }];
         Plotly.newPlot(plotly_div, <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
+        this.callbacks.renderFinished();
     }
 
-    refreshObjectInspector() {
+    refreshObjectInspector(invoke_render_finished = true) {
         this.callbacks.clearSettings();
         this.checkbox = this.settings.checkBox({
             label: 'Checkbox',
@@ -141,7 +142,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
                                                                change: () => this.updateColourForSelection()});
         this.callbacks.updateObjectInspector();
         this.updateErrorsAndWarnings();
-        this.callbacks.renderFinished();
+        if (invoke_render_finished)
+            this.callbacks.renderFinished();
     }
 
     updateErrorsAndWarnings() {
