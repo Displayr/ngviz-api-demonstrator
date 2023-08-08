@@ -57,7 +57,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         }
         container.className = 'ngviz-api-demo';
 
-        this.refreshObjectInspector(false);
+        this.refreshObjectInspector();
 
         const mode_div = create('div', {}, `This ngviz is running in ${editMode ? 'edit' : 'view'} mode.`);
         this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
@@ -130,7 +130,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             this.callbacks.renderFinished();
     }
 
-    refreshObjectInspector(invoke_render_finished = true) {
+    refreshObjectInspector() {
         this.callbacks.clearSettings();
         this.checkbox = this.settings.checkBox({
             label: 'Checkbox',
@@ -162,8 +162,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
                                                                change: () => this.updateColourForSelection()});
         this.callbacks.updateObjectInspector();
         this.updateErrorsAndWarnings();
-        if (invoke_render_finished)
-            this.renderFinished();
+        this.renderFinished();
     }
 
     updateErrorsAndWarnings() {
