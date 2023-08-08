@@ -9,11 +9,7 @@ interface ViewState {
  * See README.md.
  */
 export default class NgvizApiDemonstrator implements INgviz<ViewState> {
-    container: HTMLDivElement;
-    settings: IObjectInspectorSpecification;
-    callbacks: INgvizCallbacks<ViewState>;
     sizeDiv: HTMLElement;
-    viewState: ViewState;
     viewStateClickableDiv: HTMLElement;
     controlsDiv: HTMLElement;
     ngvizSelectedDiv: HTMLElement;
@@ -27,8 +23,18 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     dropBox?: IObjectInspectorControl<string[]>;
     hostDrawing?: IObjectInspectorControl<string>;
 
-    constructor(container: HTMLDivElement, edit_mode: boolean, settings: IObjectInspectorSpecification, view_state_to_restore: ViewState, callbacks: INgvizCallbacks<ViewState>, mode_state: INgvizModeState) {
-        function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
+    private construction_complete: boolean = false;
+    private stylesheet_loaded: boolean = false;
+
+    constructor(
+        private container: HTMLDivElement, 
+        editMode: boolean, 
+        private settings: IObjectInspectorSpecification, 
+        private viewState: ViewState, 
+        private callbacks: INgvizCallbacks<ViewState>, 
+        mode_state: INgvizModeState) {
+
+            function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
             const e = document.createElement(element_name);
             for (const k in attrs)
                 e.setAttribute(k, attrs[k]);
@@ -36,14 +42,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             return e;
         }
 
-        this.container = container;
-        this.settings = settings;
-        this.callbacks = callbacks;        
-        this.viewState = view_state_to_restore;
         if (!this.viewState.clickCount)
             this.viewState.clickCount = 0;
 
-        callbacks.loadStylesheet(callbacks.getAssetPathFor('assets/style.css'));  // returns a promise
+        this.addCssReference();
         
         const font = mode_state.baseFont;
         if (font) {
@@ -57,7 +59,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
         this.refreshObjectInspector(false);
 
-        const mode_div = create('div', {}, `This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.`);
+        const mode_div = create('div', {}, `This ngviz is running in ${editMode ? 'edit' : 'view'} mode.`);
         this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
         this.updateSizeDiv();
         const font_div = create('div', {}, `Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.`);
@@ -107,7 +109,25 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             y: [10, 15, 13]
         }];
         Plotly.newPlot(plotly_div, <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
-        this.callbacks.renderFinished();
+        
+        this.construction_complete = true;
+        this.renderFinished();
+    }
+
+    private async addCssReference() {
+        const stylesheetUrl = this.callbacks.getAssetPathFor('assets/ngviz-api-demonstrator-style.css');
+        await this.callbacks.loadStylesheet(stylesheetUrl);
+        this.stylesheet_loaded = true;
+        this.renderFinished();
+    }
+
+    private isRenderFinished(): boolean {
+        return this.construction_complete && this.stylesheet_loaded;
+    }
+
+    private renderFinished() {
+        if (this.isRenderFinished())
+            this.callbacks.renderFinished();
     }
 
     refreshObjectInspector(invoke_render_finished = true) {
@@ -143,7 +163,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.callbacks.updateObjectInspector();
         this.updateErrorsAndWarnings();
         if (invoke_render_finished)
-            this.callbacks.renderFinished();
+            this.renderFinished();
     }
 
     updateErrorsAndWarnings() {
@@ -195,7 +215,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     resizedOrDragged() {
         this.updateSizeDiv();
-        this.callbacks.renderFinished();
+        this.renderFinished();
     }
 
     validateNgvizConstructor() {
