@@ -23,12 +23,12 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     dropBox?: IObjectInspectorControl<string[]>;
     hostDrawing?: IObjectInspectorControl<string>;
 
-    private construction_complete: boolean = false;
-    private stylesheet_loaded: boolean = false;
+    private constructionComplete: boolean = false;
+    private stylesheetLoaded: boolean = false;
 
     constructor(
         private container: HTMLDivElement, 
-        editMode: boolean, 
+        edit_mode: boolean, 
         private settings: IObjectInspectorSpecification, 
         private viewState: ViewState, 
         private callbacks: INgvizCallbacks<ViewState>, 
@@ -59,7 +59,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
         this.refreshObjectInspector();
 
-        const mode_div = create('div', {}, `This ngviz is running in ${editMode ? 'edit' : 'view'} mode.`);
+        const mode_div = create('div', {}, `This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.`);
         this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
         this.updateSizeDiv();
         const font_div = create('div', {}, `Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.`);
@@ -110,19 +110,19 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         }];
         Plotly.newPlot(plotly_div, <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
         
-        this.construction_complete = true;
+        this.constructionComplete = true;
         this.renderFinished();
     }
 
     private async addCssReference() {
         const stylesheetUrl = this.callbacks.getAssetPathFor('assets/ngviz-api-demonstrator-style.css');
         await this.callbacks.loadStylesheet(stylesheetUrl);
-        this.stylesheet_loaded = true;
+        this.stylesheetLoaded = true;
         this.renderFinished();
     }
 
     private isRenderFinished(): boolean {
-        return this.construction_complete && this.stylesheet_loaded;
+        return this.constructionComplete && this.stylesheetLoaded;
     }
 
     private renderFinished() {
