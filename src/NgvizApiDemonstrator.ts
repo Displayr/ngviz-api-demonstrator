@@ -9,13 +9,13 @@ interface ViewState {
  * See README.md.
  */
 export default class NgvizApiDemonstrator implements INgviz<ViewState> {
-    sizeDiv: HTMLElement;
-    viewStateClickableDiv: HTMLElement;
-    controlsDiv: HTMLElement;
-    ngvizSelectedDiv: HTMLElement;
-    subSelectableDiv: HTMLElement;
-    dropBoxDataDiv: HTMLElement;
-    subSelectableIsSelected: boolean;
+    sizeDiv!: HTMLElement;
+    viewStateClickableDiv!: HTMLElement;
+    controlsDiv!: HTMLElement;
+    ngvizSelectedDiv!: HTMLElement;
+    subSelectableDiv!: HTMLElement;
+    dropBoxDataDiv!: HTMLElement;
+    subSelectableIsSelected = false;
     checkbox?: IObjectInspectorControl<boolean>;
     addNErrors?: IObjectInspectorControl<number>;
     addNWarnings?: IObjectInspectorControl<number>;
@@ -24,17 +24,19 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     hostDrawing?: IObjectInspectorControl<string>;
 
     private constructionComplete: boolean = false;
-    private stylesheetLoaded: boolean = false;
 
     constructor(
         private container: HTMLDivElement, 
-        edit_mode: boolean, 
+        private editMode: boolean, 
         private settings: IObjectInspectorSpecification, 
         private viewState: ViewState, 
         private callbacks: INgvizCallbacks<ViewState>, 
-        mode_state: INgvizModeState) {
+        private modeState: INgvizModeState) {
+        this.render();
+    }
 
-            function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
+    private async render() {
+        function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
             const e = document.createElement(element_name);
             for (const k in attrs)
                 e.setAttribute(k, attrs[k]);
@@ -45,26 +47,27 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         if (!this.viewState.clickCount)
             this.viewState.clickCount = 0;
 
-        this.addCssReference();
+        // We await this because later code depends on styling to size the chart
+        await this.addCssReference();
         
-        const font = mode_state.baseFont;
+        const font = this.modeState.baseFont;
         if (font) {
-            container.style.setProperty('font-family', font.family),
-            container.style.setProperty('font-size', font.size + 'pt');
-            container.style.setProperty('font-weight', font.bold ? 'bold' : 'normal');
-            container.style.setProperty('font-style', font.italic ? 'italic' : 'normal');
-            container.style.setProperty('text-decoration', font.underline ? (font.strikeout ? 'underline line-through' : 'underline') : (font.strikeout ? 'line-through' : 'none'));
+            this.container.style.setProperty('font-family', font.family),
+            this.container.style.setProperty('font-size', font.size + 'pt');
+            this.container.style.setProperty('font-weight', font.bold ? 'bold' : 'normal');
+            this.container.style.setProperty('font-style', font.italic ? 'italic' : 'normal');
+            this.container.style.setProperty('text-decoration', font.underline ? (font.strikeout ? 'underline line-through' : 'underline') : (font.strikeout ? 'line-through' : 'none'));
         }
-        container.className = 'ngviz-api-demo';
+        this.container.className = 'ngviz-api-demo';
 
         this.refreshObjectInspector();
 
-        const mode_div = create('div', {}, `This ngviz is running in ${edit_mode ? 'edit' : 'view'} mode.`);
+        const mode_div = create('div', {}, `This ngviz is running in ${this.editMode ? 'edit' : 'view'} mode.`);
         this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
         this.updateSizeDiv();
         const font_div = create('div', {}, `Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.`);
         const colours_div = create('div', {}, `The available colour palette is: `);
-        for (const c of mode_state.colorPalette)
+        for (const c of this.modeState.colorPalette)
             colours_div.appendChild(create('span', {style:`background-color:rgb(${c}); width: 2em; display: inline-block`}, '&nbsp;'));
         const styled_div = create('div', {}, 'This ngviz should be surrounded by a double red border, which comes from assets/style.css');
 
@@ -72,7 +75,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.viewStateClickableDiv.addEventListener('click', () => {
             this.viewState.clickCount! ++;
             this.updateClickCount();
-            callbacks.viewStateChanged(this.viewState);
+            this.callbacks.viewStateChanged(this.viewState);
         });
         this.updateClickCount();
 
@@ -90,7 +93,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             this.refreshObjectInspector();
             event.stopPropagation();
         });
-        container.addEventListener('click', () => {
+        this.container.addEventListener('click', () => {
             // Click anywhere else removes selection.
             this.subSelectableIsSelected = false;
             this.subSelectableDiv.classList.remove('ngviz-api-demo-subselected');
@@ -102,7 +105,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateDropBoxData();
 
         const plotly_div = create('div', {style: "height:150px"}, '');
-        container.append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
+        this.container.append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
 
         var data = [{
             x: [1, 2, 3],
@@ -117,12 +120,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     private async addCssReference() {
         const stylesheetUrl = this.callbacks.getAssetPathFor('assets/ngviz-api-demonstrator-style.css');
         await this.callbacks.loadStylesheet(stylesheetUrl);
-        this.stylesheetLoaded = true;
-        this.renderFinished();
     }
 
     private isRenderFinished(): boolean {
-        return this.constructionComplete && this.stylesheetLoaded;
+        return this.constructionComplete;
     }
 
     private renderFinished() {
