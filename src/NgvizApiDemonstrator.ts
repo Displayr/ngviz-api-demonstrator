@@ -148,7 +148,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.dropBox = this.settings.dropBox({
             label: 'Dropdown (called primaryData)',
             name: 'primaryData',
-            page: 'Inputs',
+            page: 'Data',
             group: 'Data Source',
             multi: true,
             types: types_available.split(';').map(s => s.trim()).filter(Boolean),
