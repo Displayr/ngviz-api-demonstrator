@@ -111,7 +111,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             x: [1, 2, 3],
             y: [10, 15, 13]
         }];
-        Plotly.newPlot(plotly_div, <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}});
+        Plotly.newPlot(plotly_div, <any>data, {margin:{pad:0,l:0,t:0,r:0,b:0}}, { displayModeBar: false });
         
         this.constructionComplete = true;
         this.renderFinished();
