@@ -1,6 +1,6 @@
 {
   "name": "@displayr/ngviz-api-demonstrator",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "description": "As simple as possible an ngviz that demonstrates writing an ngviz against the API, without delving into all the different control types",
   "keywords": [],
   "homepage": "https://github.com/Displayr/ngviz-api-demonstrator#readme",
