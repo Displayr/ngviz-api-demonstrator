@@ -1,5 +1,6 @@
 import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
+import { createElement } from './util';
 
 interface ViewState {
     clickCount?: number;
@@ -32,17 +33,16 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         private viewState: ViewState, 
         private callbacks: INgvizCallbacks<ViewState>, 
         private modeState: INgvizModeState) {
+        this.sizeDiv = createElement('div', {}, `Its size <span>???</span>`);
+        this.viewStateClickableDiv = createElement('div', {}, 'This text been clicked <span>???</span> times, which will be persisted in view state.');
+        this.controlsDiv = createElement('div', {}, 'The checkbox in the object inspector is <span>?</span>.');
+        this.ngvizSelectedDiv = createElement('div', {}, 'This ngviz is <span>???</span>selected in Displayr.');
+        this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
+        this.dropBoxDataDiv = createElement('div', {class: "dropBoxData"}, '');
         this.render();
     }
 
     private async render() {
-        function create(element_name: string, attrs: {[name:string]: string}, inner_html: string): HTMLElement {
-            const e = document.createElement(element_name);
-            for (const k in attrs)
-                e.setAttribute(k, attrs[k]);
-            e.innerHTML = inner_html;
-            return e;
-        }
 
         if (!this.viewState.clickCount)
             this.viewState.clickCount = 0;
@@ -62,16 +62,14 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
         this.refreshObjectInspector();
 
-        const mode_div = create('div', {}, `This ngviz is running in ${this.editMode ? 'edit' : 'view'} mode.`);
-        this.sizeDiv = create('div', {}, `Its size <span>???</span>`);
+        const mode_div = createElement('div', {}, `This ngviz is running in ${this.editMode ? 'edit' : 'view'} mode.`);
         this.updateSizeDiv();
-        const font_div = create('div', {}, `Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.`);
-        const colours_div = create('div', {}, `The available colour palette is: `);
+        const font_div = createElement('div', {}, `Its base font comes from its host environment.  It should be Comic Sans in the harness, and whatever the default chart font is in Displayr.`);
+        const colours_div = createElement('div', {}, `The available colour palette is: `);
         for (const c of this.modeState.colorPalette)
-            colours_div.appendChild(create('span', {style:`background-color:rgb(${c}); width: 2em; display: inline-block`}, '&nbsp;'));
-        const styled_div = create('div', {}, 'This ngviz should be surrounded by a double red border, which comes from assets/style.css');
+            colours_div.appendChild(createElement('span', {style:`background-color:rgb(${c}); width: 2em; display: inline-block`}, '&nbsp;'));
+        const styled_div = createElement('div', {}, 'This ngviz should be surrounded by a double red border, which comes from assets/style.css');
 
-        this.viewStateClickableDiv = create('div', {}, 'This text been clicked <span>???</span> times, which will be persisted in view state.');
         this.viewStateClickableDiv.addEventListener('click', () => {
             this.viewState.clickCount! ++;
             this.updateClickCount();
@@ -79,14 +77,11 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         });
         this.updateClickCount();
 
-        this.controlsDiv = create('div', {}, 'The checkbox in the object inspector is <span>?</span>.');
         this.updateTextForCheckboxState();
 
-        this.ngvizSelectedDiv = create('div', {}, 'This ngviz is <span>???</span>selected in Displayr.');
         this.selected(false);  // to give it an initial value
 
         this.subSelectableIsSelected = false;
-        this.subSelectableDiv = create('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         this.subSelectableDiv.addEventListener('click', (event) => {
             this.subSelectableIsSelected = true;
             this.subSelectableDiv.classList.add('ngviz-api-demo-subselected');
@@ -101,10 +96,9 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         });
         this.updateColourForSelection();
 
-        this.dropBoxDataDiv = create('div', {class: "dropBoxData"}, '');
         this.updateDropBoxData();
 
-        const plotly_div = create('div', {style: "height:150px"}, '');
+        const plotly_div = createElement('div', {style: "height:150px"}, '');
         this.container.append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
 
         var data = [{
