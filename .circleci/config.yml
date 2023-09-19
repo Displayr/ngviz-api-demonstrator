@@ -48,3 +48,10 @@ jobs:
                     --header "Circle-Token: $CIRCLE_API_TOKEN" \
                     --header "content-type: application/json" \
                     --data  '{"branch":"master","parameters":{"deploy-blobs":true, "deploy-blobs-tag": "next"}}'
+            - run:
+                name: Trigger ngviz-server to update latest tag
+                command: |
+                  curl --request POST https://circleci.com/api/v2/project/gh/Displayr/ngviz-server/pipeline \
+                    --header "Circle-Token: $CIRCLE_API_TOKEN" \
+                    --header "content-type: application/json" \
+                    --data  "{\"branch\":\"master\",\"parameters\":{\"update-latest-package-name\": $(npm pkg get name), \"update-latest-package-version\": $(npm pkg get version)}}"
