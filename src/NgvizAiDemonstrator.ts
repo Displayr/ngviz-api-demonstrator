@@ -2,8 +2,7 @@ import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspecto
 import * as Plotly from 'plotly.js-dist-min';
 
 interface ViewState {
-    newData: Plotly.Data;
-    newLayout: Plotly.Layout;
+    ai_state?: {data: Plotly.Data, layout: Plotly.Layout};
     accumulatedData?: Plotly.Data;
     accumulatedLayout?: Plotly.Layout;
 }
@@ -23,8 +22,9 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     // dropBox?: IObjectInspectorControl<string[]>;
     // hostDrawing?: IObjectInspectorControl<string>;
 
+    userInput!: IObjectInspectorControl<string>;
+
     // private constructionComplete: boolean = false;
-    userInputs: string[] = [];
     private debounceTimer!: number;
 
     constructor(
@@ -52,16 +52,15 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     updateControls() {
         this.callbacks.clearSettings();
 
-        const input = this.settings.textBox({
+        this.userInput = this.settings.textBox({
             name: 'formUserInput',
             label: 'Modify chart',
             required: false,
             change: () => {
                 this.update();
-                input.setValue('');
+                // input.setValue('');
             }
         });
-        this.userInputs[0] = input.getValue(); // temporarily use textbox directly; later this will be value returned from QServer
 
         // this.dropBox = this.settings.dropBox({
         //     label: 'Dropdown (called primaryData)',
@@ -108,22 +107,20 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     render() {
         this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
-        // const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
 
-        let data_change = undefined;
-        try {
-            data_change = JSON.parse(this.userInputs[0]);
-        } catch {}
+        const data_change = this.viewState?.ai_state?.data;
+        const layout_change = this.viewState?.ai_state?.layout;
 
         const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
         const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
-        const tmp_data = [{...data_change, ...data[0] }];
-        const tmp_layout = {...layout};
+        const tmp_data = [{...data_change, ...data[0] }] as Plotly.Data[];
+        const tmp_layout = {...layout_change, ...layout};
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
-        if (data_change !== undefined && !invalid_data_or_layout) {
+        if ((data_change || layout_change) && !invalid_data_or_layout) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
             this.viewState.accumulatedData = tmp_data[0] as Plotly.Data;
             this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
+            this.viewState.ai_state = undefined;
             this.callbacks.viewStateChanged(this.viewState);
         } else
             Plotly.newPlot(this.container, data, layout, config);
@@ -163,6 +160,8 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         span.onclick = () => {
             this.viewState.accumulatedData = undefined;
             this.viewState.accumulatedLayout = undefined;
+            (this.userInput as any).setValue('');
+
             this.callbacks.viewStateChanged(this.viewState);
             this.update();
         }
