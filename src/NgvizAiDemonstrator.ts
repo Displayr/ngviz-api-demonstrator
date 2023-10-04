@@ -2,7 +2,10 @@ import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspecto
 import * as Plotly from 'plotly.js-dist-min';
 
 interface ViewState {
-    clickCount?: number;
+    newData: Plotly.Data;
+    newLayout: Plotly.Layout;
+    accumulatedData: Plotly.Data;
+    accumulatedLayout: Plotly.Layout;
 }
 
 export default class NgvizAiDemonstrator implements INgviz<ViewState> {
@@ -77,14 +80,12 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }
 
     getData() {
-        const data = [
-            {
-              y: ['Coca Cola', 'Diet Coke', 'Coke Zero', 'Pepsi', 'Pepsi Light', 'Pepsi Max'].reverse(),
-              x: [33, 12, 18, 8, 5, 15].reverse(),
-              type: 'bar',
-              orientation: 'h'
-            }
-          ] as Plotly.Data[];
+        const data = {
+            y: ['Coca Cola', 'Diet Coke', 'Coke Zero', 'Pepsi', 'Pepsi Light', 'Pepsi Max'].reverse(),
+            x: [33, 12, 18, 8, 5, 15].reverse(),
+            type: 'bar',
+            orientation: 'h'
+        } as Plotly.Data;
         // apply data modifications from chatgpt here
         return data;
     }
@@ -105,14 +106,19 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         const config = { displayModeBar: false } as Plotly.Config
         const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
         const data_change = JSON.parse(txt);
-        const data = this.getData();
-        const layout = this.getLayout();
-        const tmp_data = [{...data_change, ...(data[0]) }];
-        const invalid_data_or_layout = !!(Plotly as any).validate(tmp_data, layout);
-        if (!invalid_data_or_layout)
-            Plotly.newPlot(this.container, tmp_data, this.getLayout(), config);
-        else
-            Plotly.newPlot(this.container, data, this.getLayout(), config);
+        const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
+        const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
+        const tmp_data = [{...data_change, ...data[0] }];
+        const tmp_layout = {...layout};
+        const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
+        if (!invalid_data_or_layout) {
+            Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
+            this.viewState.accumulatedData = tmp_data[0] as Plotly.Data;
+            this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
+            this.callbacks.viewStateChanged(this.viewState);
+        } else
+            Plotly.newPlot(this.container, data, layout, config);
+
         this.callbacks.renderFinished();
     }
 
