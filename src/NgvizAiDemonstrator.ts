@@ -25,6 +25,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
     // private constructionComplete: boolean = false;
     userInputs: string[] = [];
+    private debounceTimer!: number;
 
     constructor(
         private container: HTMLDivElement, 
@@ -109,7 +110,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         const config = { displayModeBar: false } as Plotly.Config
         // const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
 
-        let data_change = {};
+        let data_change = undefined;
         try {
             data_change = JSON.parse(this.userInputs[0]);
         } catch {}
@@ -119,7 +120,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         const tmp_data = [{...data_change, ...data[0] }];
         const tmp_layout = {...layout};
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
-        if (!invalid_data_or_layout) {
+        if (data_change !== undefined && !invalid_data_or_layout) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
             this.viewState.accumulatedData = tmp_data[0] as Plotly.Data;
             this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
@@ -129,6 +130,11 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
         this.createResetButton();
         this.callbacks.renderFinished();
+    }
+
+    private updateWithDebounce() {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = window.setTimeout(() => this.update(), 100);
     }
 
     createResetButton() {
@@ -174,7 +180,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     selected(is_selected: boolean): void {}
 
     resizedOrDragged() {
-        this.update();
+        this.updateWithDebounce();
     }
 
     validateNgvizConstructor() {
