@@ -4,8 +4,8 @@ import * as Plotly from 'plotly.js-dist-min';
 interface ViewState {
     newData: Plotly.Data;
     newLayout: Plotly.Layout;
-    accumulatedData: Plotly.Data;
-    accumulatedLayout: Plotly.Layout;
+    accumulatedData?: Plotly.Data;
+    accumulatedLayout?: Plotly.Layout;
 }
 
 export default class NgvizAiDemonstrator implements INgviz<ViewState> {
@@ -119,7 +119,42 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         } else
             Plotly.newPlot(this.container, data, layout, config);
 
+        this.createResetButton();
         this.callbacks.renderFinished();
+    }
+
+    createResetButton() {
+        const div = document.createElement('div');
+        div.style.position = 'relative';
+        div.style.height = '25px';
+        div.style.width = '70px';
+        div.style.top = '-25px';
+        div.style.left = `${this.container.offsetWidth - 70}px`;
+
+        const span = document.createElement('span');
+        span.innerText = 'Reset';
+        span.style.fontSize = '20px';
+        span.style.color = 'rgb(180, 180, 180)';
+
+        span.onmouseenter = () => {
+            span.style.color = 'rgb(120, 120, 120)';
+            span.style.cursor = 'pointer';
+        }
+
+        span.onmouseleave = () => {
+            span.style.color = 'rgb(180, 180, 180)';
+            span.style.cursor = '';
+        }
+
+        span.onclick = () => {
+            this.viewState.accumulatedData = undefined;
+            this.viewState.accumulatedLayout = undefined;
+            this.callbacks.viewStateChanged(this.viewState);
+            this.update();
+        }
+
+        div.append(span);
+        this.container.append(div);
     }
 
     clearContainer() {
