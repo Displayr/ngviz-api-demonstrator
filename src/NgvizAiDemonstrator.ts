@@ -21,6 +21,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     // hostDrawing?: IObjectInspectorControl<string>;
 
     // private constructionComplete: boolean = false;
+    userInputs: string[] = [];
 
     constructor(
         private container: HTMLDivElement, 
@@ -47,11 +48,13 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     updateControls() {
         this.callbacks.clearSettings();
 
-        this.settings.textBox({
+        const input = this.settings.textBox({
             name: 'formUserInput',
             label: 'How would you like to change the chart?',
+            required: false,
             change: () => this.update(),
         });
+        this.userInputs[0] = input.getValue(); // temporarily use textbox directly; later this will be value returned from QServer
 
         // this.dropBox = this.settings.dropBox({
         //     label: 'Dropdown (called primaryData)',
@@ -86,9 +89,29 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         return data;
     }
 
+    /*applyDataChange() {
+        const txt = '{ "marker": {"color": "red" }}';
+        const data_change = JSON.parse(txt);
+        const tmp_data = {...data_change, ...this.getData() };
+        const tmp_data = {...data_change, ...this.getData() };
+        const invalid_layout = (Plotly as any).validate(tmp_data, {});
+        console.log(invalid_layout);
+        if (!invalid_layout)
+            Plotly.restyle(this.container, data_change as Plotly.Data);
+    }*/
+
     render() {
-        const config = { displayModeBar: false } as Plotly.Config;
-        Plotly.newPlot(this.container, this.getData(), this.getLayout(), config);
+        const config = { displayModeBar: false } as Plotly.Config
+        const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
+        const data_change = JSON.parse(txt);
+        const data = this.getData();
+        const layout = this.getLayout();
+        const tmp_data = [{...data_change, ...(data[0]) }];
+        const invalid_layout = (Plotly as any).validate(tmp_data, layout);
+        if (!invalid_layout)
+            Plotly.newPlot(this.container, tmp_data, this.getLayout(), config);
+        else
+            Plotly.newPlot(this.container, data, this.getLayout(), config);
         this.callbacks.renderFinished();
     }
 
