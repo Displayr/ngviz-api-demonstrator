@@ -1,3 +1,3 @@
-import NgvizApiDemonstrator from './NgvizApiDemonstrator';
+import NgvizAiDemonstrator from './NgvizAiDemonstrator';
 
-export default NgvizApiDemonstrator;
+export default NgvizAiDemonstrator;
