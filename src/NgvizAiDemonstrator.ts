@@ -17,7 +17,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     // addNErrors?: IObjectInspectorControl<number>;
     // addNWarnings?: IObjectInspectorControl<number>;
     // colourPicker?: IObjectInspectorControl<string>;
-    dropBox?: IObjectInspectorControl<string[]>;
+    // dropBox?: IObjectInspectorControl<string[]>;
     // hostDrawing?: IObjectInspectorControl<string>;
 
     // private constructionComplete: boolean = false;
@@ -46,20 +46,34 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
     updateControls() {
         this.callbacks.clearSettings();
-        this.dropBox = this.settings.dropBox({
-            label: 'Dropdown (called primaryData)',
-            name: 'primaryData',
-            page: 'Inputs',
-            group: 'Data Source',
-            multi: true,
-            types: ["RItem", "Table"],
-            data_change: () => this.update(),
-            change: () => {},
+
+        this.settings.textBox({
+            name: 'formUserInput',
+            label: 'How would you like to change the chart?',
+            change: () => this.update(),
         });
+
+        // this.dropBox = this.settings.dropBox({
+        //     label: 'Dropdown (called primaryData)',
+        //     name: 'primaryData',
+        //     page: 'Inputs',
+        //     group: 'Data Source',
+        //     multi: true,
+        //     types: ["RItem", "Table"],
+        //     data_change: () => this.update(),
+        //     change: () => {},
+        // });
+
         this.callbacks.updateObjectInspector();
     }
 
-    render() {
+    getLayout() {
+        const layout = {} as Plotly.Layout;
+        // apply layout modifications from chatgpt here
+        return layout;
+    }
+
+    getData() {
         const data = [
             {
               y: ['Coca Cola', 'Diet Coke', 'Coke Zero', 'Pepsi', 'Pepsi Light', 'Pepsi Max'].reverse(),
@@ -68,17 +82,20 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
               orientation: 'h'
             }
           ] as Plotly.Data[];
-        const layout = {} as Plotly.Layout;
+        // apply data modifications from chatgpt here
+        return data;
+    }
+
+    render() {
         const config = { displayModeBar: false } as Plotly.Config;
-        Plotly.newPlot(this.container, data, layout, config);
+        Plotly.newPlot(this.container, this.getData(), this.getLayout(), config);
         this.callbacks.renderFinished();
     }
 
     selected(is_selected: boolean): void {}
 
     resizedOrDragged() {
-        // this.updateSizeDiv();
-        // this.renderFinished();
+        this.update();
     }
 
     validateNgvizConstructor() {
