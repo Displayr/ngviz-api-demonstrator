@@ -55,7 +55,10 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
             name: 'formUserInput',
             label: 'Modify chart',
             required: false,
-            change: () => this.update(),
+            change: () => {
+                this.update();
+                input.setValue('');
+            }
         });
         this.userInputs[0] = input.getValue(); // temporarily use textbox directly; later this will be value returned from QServer
 
@@ -104,8 +107,13 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     render() {
         this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
-        const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
-        const data_change = JSON.parse(txt);
+        // const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
+
+        let data_change = {};
+        try {
+            data_change = JSON.parse(this.userInputs[0]);
+        } catch {}
+
         const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
         const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
         const tmp_data = [{...data_change, ...data[0] }];
