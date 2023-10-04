@@ -50,7 +50,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
         const input = this.settings.textBox({
             name: 'formUserInput',
-            label: 'How would you like to change the chart?',
+            label: 'Modify chart',
             required: false,
             change: () => this.update(),
         });
@@ -101,18 +101,25 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }*/
 
     render() {
+        this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
         const txt = '{ "marker": {"color": "red" }}';    // some fake input - later to be replaced by Q server inputs
         const data_change = JSON.parse(txt);
         const data = this.getData();
         const layout = this.getLayout();
         const tmp_data = [{...data_change, ...(data[0]) }];
-        const invalid_layout = (Plotly as any).validate(tmp_data, layout);
-        if (!invalid_layout)
+        const invalid_data_or_layout = !!(Plotly as any).validate(tmp_data, layout);
+        if (!invalid_data_or_layout)
             Plotly.newPlot(this.container, tmp_data, this.getLayout(), config);
         else
             Plotly.newPlot(this.container, data, this.getLayout(), config);
         this.callbacks.renderFinished();
+    }
+
+    clearContainer() {
+        while(this.container.firstChild){
+            this.container.removeChild(this.container.firstChild);
+        }
     }
 
     selected(is_selected: boolean): void {}
