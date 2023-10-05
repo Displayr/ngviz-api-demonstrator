@@ -45,6 +45,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }
 
     update(): void {
+        const result = this.mergeDeepReturnNewObject({title: {text: 'hello'}}, {title: {font: 30}});
         this.updateControls();
         this.render();
     }
@@ -78,7 +79,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
     getLayout() {
         const layout = {} as Plotly.Layout;
-        // apply layout modifications from chatgpt here
         return layout;
     }
 
@@ -89,7 +89,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
             type: 'bar',
             orientation: 'h'
         } as Plotly.Data;
-        // apply data modifications from chatgpt here
         return data;
     }
 
@@ -110,11 +109,11 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
         const data_change = this.viewState?.ai_state?.data;
         const layout_change = this.viewState?.ai_state?.layout;
+        const data = [this.mergeDeepReturnNewObject(this.viewState.accumulatedData, this.getData())] as Plotly.Data[];
+        const layout = this.mergeDeepReturnNewObject(this.viewState.accumulatedLayout, this.getLayout());
+        const tmp_data = [this.mergeDeepReturnNewObject(data[0],data_change)];
+        const tmp_layout = this.mergeDeepReturnNewObject(layout, layout_change);
 
-        const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
-        const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
-        const tmp_data = [{...data[0], ...data_change }] as Plotly.Data[];
-        const tmp_layout = {...layout, ...layout_change};
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
         if ((data_change || layout_change) && !invalid_data_or_layout) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
@@ -127,12 +126,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
         this.createResetButton();
         this.callbacks.renderFinished();
-    }
-
-    private updateWithDebounce() {
-        //**clearTimeout(this.debounceTimer);
-        //**this.debounceTimer = window.setTimeout(() => this.update(), 100);
-        this.update();
     }
 
     createResetButton() {
@@ -161,7 +154,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         span.onclick = () => {
             this.viewState.accumulatedData = undefined;
             this.viewState.accumulatedLayout = undefined;
-            (this.userInput as any).setValue('');
+            this.userInput.setValue('');
 
             this.callbacks.viewStateChanged(this.viewState);
             this.update();
@@ -180,10 +173,36 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     selected(is_selected: boolean): void {}
 
     resizedOrDragged() {
-        this.updateWithDebounce();
+        this.update();
     }
 
     validateNgvizConstructor() {
         return NgvizAiDemonstrator;
+    }
+
+    isObject(item: any) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+
+    mergeDeepReturnNewObject(obj_1: any, obj_2: any) {
+        return this.mergeDeep({...obj_1}, {...obj_2});
+    }
+      
+    /**
+     * Deep merge two objects. From https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
+     */
+    mergeDeep(target: any, source: any): any {
+        if (this.isObject(target) && this.isObject(source)) {
+            for (const key in source) {
+                if (this.isObject(source[key])) {
+                    if (!target[key]) Object.assign(target, { [key]: {} });
+                    this.mergeDeep(target[key], source[key]);
+                } else {
+                    Object.assign(target, { [key]: source[key] });
+                }
+            }
+        }
+        
+        return target;
     }
 }
