@@ -121,9 +121,9 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         } else {
             if (data_change || layout_change) {
                 var msg = 'Query was not understood';
-                const n_msg = invalid_data_or_layout.Length;
+                const n_msg = invalid_data_or_layout.length;
                 for (var i = 0; i < n_msg; i++)
-                    msg = msg + invalid_data_or_layout[i].message;
+                    msg = msg + '. ' + invalid_data_or_layout[i].msg;
                 this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] 
                     }, this.hostDraw);
             }
