@@ -114,9 +114,10 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
 
         if (!this.viewState.StateChangeHistory)
             this.viewState.StateChangeHistory = [];
-        const data_change_json = (this.viewState?.StateChange?.DataJson != "" ? this.viewState?.StateChange?.DataJson : "{}") ?? "{}";
+        const is_input_empty = this.userInput.getValue() === '';
+        const data_change_json = (this.viewState?.StateChange?.DataJson != "" && !is_input_empty ? this.viewState?.StateChange?.DataJson : "{}") ?? "{}";
         const data_change = JSON.parse(data_change_json);
-        const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" ? this.viewState?.StateChange?.LayoutJson : "{}") ?? "{}";
+        const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" && !is_input_empty ? this.viewState?.StateChange?.LayoutJson : "{}") ?? "{}";
         const layout_change = JSON.parse(layout_change_json);
 
         const data = [this.mergeDeepReturnNewObject(this.viewState.AccumulatedData, this.getData())] as Plotly.Data[];
