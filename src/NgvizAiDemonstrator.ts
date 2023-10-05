@@ -119,20 +119,26 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
         const tmp_data = [this.mergeDeepReturnNewObject(data[0], data_change)];
         const tmp_layout = this.mergeDeepReturnNewObject(layout, layout_change);
 
-        const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
+        let data_or_layout_errors = (Plotly as any).validate(tmp_data, tmp_layout) as any[];
+        let has_plotly_validation_errors = !!data_or_layout_errors;
+        if (has_plotly_validation_errors){
+            const non_schema_errors = data_or_layout_errors.filter(verror => verror.code !== 'schema' && verror.code !== 'unused');
+            has_plotly_validation_errors = non_schema_errors.length > 0;
+            data_or_layout_errors = non_schema_errors;
+        }
 
-        if ((data_change || layout_change) && !invalid_data_or_layout) {
+        if ((data_change || layout_change) && !has_plotly_validation_errors) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
             this.viewState.AccumulatedData = tmp_data[0] as Plotly.Data;
             this.viewState.AccumulatedLayout = tmp_layout as Plotly.Layout;
         } else {
             const has_state_change_errors = this.viewState.StateChange && this.viewState.StateChange?.Errors.length > 0;
 
-            if (data_change || layout_change && !has_state_change_errors) {
+            if ((data_change || layout_change) && !has_state_change_errors) {
                 var msg = 'Your request is not clear enough to be applied to this chart';
-                const n_msg = invalid_data_or_layout.length;
+                const n_msg = data_or_layout_errors.length;
                 for (var i = 0; i < n_msg; i++)
-                    msg = msg + '. (' + invalid_data_or_layout[i].msg + ')';
+                    msg = msg + '. (' + data_or_layout_errors[i].msg + ')';
                 this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] }, this.hostDraw);
             }
             Plotly.newPlot(this.container, data, layout, config);
