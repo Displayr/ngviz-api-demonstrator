@@ -62,11 +62,6 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
     }
 
     updateControls() {
-        if (this.hostDraw !== HostDrawFlag.None) {
-            this.callbacks.setErrorsAndWarnings({}, HostDrawFlag.None);
-        }
-        this.hostDraw = HostDrawFlag.None;
-        this.callbacks.setErrorsAndWarnings({}, this.hostDraw);
         this.callbacks.clearSettings();
 
         this.userInput = this.settings.textBox({
@@ -114,10 +109,10 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
 
         if (!this.viewState.StateChangeHistory)
             this.viewState.StateChangeHistory = [];
-        const data_change_json = (this.viewState?.StateChange?.DataJson != "" ? this.viewState?.StateChange?.DataJson : "{}") ?? "{}";
-        const data_change = JSON.parse(data_change_json);
-        const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" ? this.viewState?.StateChange?.LayoutJson : "{}") ?? "{}";
-        const layout_change = JSON.parse(layout_change_json);
+        const data_change_json = (this.viewState?.StateChange?.DataJson != "" ? this.viewState?.StateChange?.DataJson : "") ?? "";
+        const data_change = data_change_json === "" ? undefined : JSON.parse(data_change_json);
+        const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" ? this.viewState?.StateChange?.LayoutJson : "") ?? "";
+        const layout_change = layout_change_json === "" ? undefined : JSON.parse(layout_change_json);
 
         const data = [this.mergeDeepReturnNewObject(this.viewState.AccumulatedData, this.getData())] as Plotly.Data[];
         const layout = this.mergeDeepReturnNewObject(this.viewState.AccumulatedLayout, this.getLayout());
@@ -130,29 +125,27 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
             this.viewState.AccumulatedData = tmp_data[0] as Plotly.Data;
             this.viewState.AccumulatedLayout = tmp_layout as Plotly.Layout;
-            if (this.viewState.StateChange){
-                if (this.viewState.StateChangeHistory.length == 0 ||
-                    this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
-                    this.viewState.StateChangeHistory.push(this.viewState.StateChange);
-            }
-            this.viewState.StateChange = undefined;
-            this.callbacks.viewStateChanged(this.viewState);
         } else {
-            if (data_change || layout_change) {
+            const has_state_change_errors = this.viewState.StateChange && this.viewState.StateChange?.Errors.length > 0;
+
+            if (data_change || layout_change && !has_state_change_errors) {
                 var msg = 'Your request is not clear enough to be applied to this chart';
                 const n_msg = invalid_data_or_layout.length;
                 for (var i = 0; i < n_msg; i++)
                     msg = msg + '. ' + invalid_data_or_layout[i].msg;
                 this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] }, this.hostDraw);
-                if (this.viewState.StateChange){
-                    if (this.viewState.StateChangeHistory.length == 0 ||
-                        this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
-                        this.viewState.StateChangeHistory.push(this.viewState.StateChange);
-                }
-                this.viewState.StateChange = undefined;
-                this.callbacks.viewStateChanged(this.viewState);
             }
             Plotly.newPlot(this.container, data, layout, config);
+        }
+
+        if (this.viewState.StateChange){
+            if (this.viewState.StateChangeHistory.length == 0 ||
+                this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
+                this.viewState.StateChangeHistory.push(this.viewState.StateChange);
+
+            this.viewState.StateChange.Errors = [];
+            this.viewState.StateChange = undefined;
+            this.callbacks.viewStateChanged(this.viewState);
         }
 
         this.createResetButton();
@@ -160,6 +153,8 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
     }
 
     private reportAIErrors(stateChange?: NgvizAIStateChange){
+        this.callbacks.setErrorsAndWarnings({}, this.hostDraw);
+
         if (!stateChange)
             return;
 
@@ -168,7 +163,6 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
         });
 
         this.callbacks.setErrorsAndWarnings({ warnings: ai_warnings }, this.hostDraw);
-        stateChange.Errors = [];
     }
 
     createResetButton() {
