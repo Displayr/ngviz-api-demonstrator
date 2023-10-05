@@ -143,7 +143,7 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
                 var msg = 'Your request is not clear enough to be applied to this chart';
                 const n_msg = invalid_data_or_layout.length;
                 for (var i = 0; i < n_msg; i++)
-                    msg = msg + '. ' + invalid_data_or_layout[i].msg;
+                    msg = msg + '. (' + invalid_data_or_layout[i].msg + ')';
                 this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] }, this.hostDraw);
                 if (this.viewState.StateChange){
                     if (this.viewState.StateChangeHistory.length == 0 ||
