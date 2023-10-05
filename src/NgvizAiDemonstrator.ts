@@ -48,7 +48,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }
 
     update(): void {
-        const result = this.mergeDeepReturnNewObject({title: {text: 'hello'}}, {title: {font: 30}});
         this.updateControls();
         this.render();
     }
@@ -104,11 +103,13 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
 
-        const data_change = this.viewState?.ai_state?.data;
-        const layout_change = this.viewState?.ai_state?.layout;
+        const is_input_empty = this.userInput.getValue() === '';
+        const data_change = is_input_empty ? undefined : this.viewState?.ai_state?.data;
+        const layout_change = is_input_empty ? undefined : this.viewState?.ai_state?.layout;
+
         const data = [this.mergeDeepReturnNewObject(this.viewState.accumulatedData, this.getData())] as Plotly.Data[];
         const layout = this.mergeDeepReturnNewObject(this.viewState.accumulatedLayout, this.getLayout());
-        const tmp_data = [this.mergeDeepReturnNewObject(data[0],data_change)];
+        const tmp_data = [this.mergeDeepReturnNewObject(data[0], data_change)];
         const tmp_layout = this.mergeDeepReturnNewObject(layout, layout_change);
 
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
@@ -126,6 +127,8 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
                     msg = msg + '. ' + invalid_data_or_layout[i].msg;
                 this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] 
                     }, this.hostDraw);
+                this.viewState.ai_state = undefined;
+                this.callbacks.viewStateChanged(this.viewState);
             }
             Plotly.newPlot(this.container, data, layout, config);
         }
@@ -163,7 +166,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
             this.userInput.setValue('');
 
             this.callbacks.viewStateChanged(this.viewState);
-            this.update();
         }
 
         div.append(span);
