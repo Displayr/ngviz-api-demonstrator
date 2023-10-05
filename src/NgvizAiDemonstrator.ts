@@ -1,4 +1,5 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag, MessageWithReferences} from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, 
+    INgvizModeState, HostDrawFlag, addErrorToErrorsAndWarnings, MessageWithReferences } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 
 interface NgvizAIStateChange {
@@ -11,8 +12,8 @@ interface NgvizAIStateChange {
 interface NgvizAIViewState {
     StateChange?: NgvizAIStateChange;
     StateChangeHistory: NgvizAIStateChange[]
-    accumulatedData?: Plotly.Data;
-    accumulatedLayout?: Plotly.Layout;
+    AccumulatedData?: Plotly.Data;
+    AccumulatedLayout?: Plotly.Layout;
 }
 
 export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
@@ -34,6 +35,7 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
 
     // private constructionComplete: boolean = false;
     private debounceTimer!: number;
+    hostDraw!: HostDrawFlag;
 
     constructor(
         private container: HTMLDivElement, 
@@ -49,6 +51,7 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
         // this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         // 
         // this.render();
+        this.hostDraw = HostDrawFlag.None;
         this.reportAIErrors(this.viewState.StateChange);
         this.update();
     }
@@ -59,6 +62,11 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
     }
 
     updateControls() {
+        if (this.hostDraw !== HostDrawFlag.None) {
+            this.callbacks.setErrorsAndWarnings({}, HostDrawFlag.None);
+        }
+        this.hostDraw = HostDrawFlag.None;
+        this.callbacks.setErrorsAndWarnings({}, this.hostDraw);
         this.callbacks.clearSettings();
 
         this.userInput = this.settings.textBox({
@@ -87,7 +95,6 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
 
     getLayout() {
         const layout = {} as Plotly.Layout;
-        // apply layout modifications from chatgpt here
         return layout;
     }
 
@@ -98,20 +105,8 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
             type: 'bar',
             orientation: 'h'
         } as Plotly.Data;
-        // apply data modifications from chatgpt here
         return data;
     }
-
-    /*applyDataChange() {
-        const txt = '{ "marker": {"color": "red" }}';
-        const data_change = JSON.parse(txt);
-        const tmp_data = {...data_change, ...this.getData() };
-        const tmp_data = {...data_change, ...this.getData() };
-        const invalid_layout = (Plotly as any).validate(tmp_data, {});
-        console.log(invalid_layout);
-        if (!invalid_layout)
-            Plotly.restyle(this.container, data_change as Plotly.Data);
-    }*/
 
     render() {
         this.clearContainer();
@@ -124,15 +119,17 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
         const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" ? this.viewState?.StateChange?.LayoutJson : "{}") ?? "{}";
         const layout_change = JSON.parse(layout_change_json);
 
-        const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
-        const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
-        const tmp_data = [{...data[0], ...data_change }] as Plotly.Data[];
-        const tmp_layout = {...layout, ...layout_change};
+        const data = [this.mergeDeepReturnNewObject(this.viewState.AccumulatedData, this.getData())] as Plotly.Data[];
+        const layout = this.mergeDeepReturnNewObject(this.viewState.AccumulatedLayout, this.getLayout());
+        const tmp_data = [this.mergeDeepReturnNewObject(data[0], data_change)];
+        const tmp_layout = this.mergeDeepReturnNewObject(layout, layout_change);
+
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
+
         if ((data_change || layout_change) && !invalid_data_or_layout) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
-            this.viewState.accumulatedData = tmp_data[0] as Plotly.Data;
-            this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
+            this.viewState.AccumulatedData = tmp_data[0] as Plotly.Data;
+            this.viewState.AccumulatedLayout = tmp_layout as Plotly.Layout;
             if (this.viewState.StateChange){
                 if (this.viewState.StateChangeHistory.length == 0 ||
                     this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
@@ -140,8 +137,23 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
             }
             this.viewState.StateChange = undefined;
             this.callbacks.viewStateChanged(this.viewState);
-        } else
+        } else {
+            if (data_change || layout_change) {
+                var msg = 'Your request is not clear enough to be applied to this chart';
+                const n_msg = invalid_data_or_layout.length;
+                for (var i = 0; i < n_msg; i++)
+                    msg = msg + '. ' + invalid_data_or_layout[i].msg;
+                this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] }, this.hostDraw);
+                if (this.viewState.StateChange){
+                    if (this.viewState.StateChangeHistory.length == 0 ||
+                        this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
+                        this.viewState.StateChangeHistory.push(this.viewState.StateChange);
+                }
+                this.viewState.StateChange = undefined;
+                this.callbacks.viewStateChanged(this.viewState);
+            }
             Plotly.newPlot(this.container, data, layout, config);
+        }
 
         this.createResetButton();
         this.callbacks.renderFinished();
@@ -155,15 +167,8 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
             return {message: error} as MessageWithReferences; 
         });
 
-        this.callbacks.setErrorsAndWarnings({ warnings: ai_warnings }, HostDrawFlag.None);
-        //this.callbacks.setErrorsAndWarnings({ warnings: [{message: 'test warning on viewState change'}]}, HostDrawFlag.None);
+        this.callbacks.setErrorsAndWarnings({ warnings: ai_warnings }, this.hostDraw);
         stateChange.Errors = [];
-    }
-
-    private updateWithDebounce() {
-        //**clearTimeout(this.debounceTimer);
-        //**this.debounceTimer = window.setTimeout(() => this.update(), 100);
-        this.update();
     }
 
     createResetButton() {
@@ -190,12 +195,11 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
         }
 
         span.onclick = () => {
-            this.viewState.accumulatedData = undefined;
-            this.viewState.accumulatedLayout = undefined;
-            (this.userInput as any).setValue('');
+            this.viewState.AccumulatedData = undefined;
+            this.viewState.AccumulatedLayout = undefined;
+            this.userInput.setValue('');
 
             this.callbacks.viewStateChanged(this.viewState);
-            this.update();
         }
 
         div.append(span);
@@ -211,10 +215,36 @@ export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
     selected(is_selected: boolean): void {}
 
     resizedOrDragged() {
-        this.updateWithDebounce();
+        this.update();
     }
 
     validateNgvizConstructor() {
         return NgvizAiDemonstrator;
+    }
+
+    isObject(item: any) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+
+    mergeDeepReturnNewObject(obj_1: any, obj_2: any) {
+        return this.mergeDeep({...obj_1}, {...obj_2});
+    }
+      
+    /**
+     * Deep merge two objects. From https://stackoverflow.com/questions/27936772/how-to-deep-merge-instead-of-shallow-merge
+     */
+    mergeDeep(target: any, source: any): any {
+        if (this.isObject(target) && this.isObject(source)) {
+            for (const key in source) {
+                if (this.isObject(source[key])) {
+                    if (!target[key]) Object.assign(target, { [key]: {} });
+                    this.mergeDeep(target[key], source[key]);
+                } else {
+                    Object.assign(target, { [key]: source[key] });
+                }
+            }
+        }
+        
+        return target;
     }
 }
