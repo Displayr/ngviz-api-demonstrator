@@ -1,13 +1,21 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag, MessageWithReferences} from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 
-interface ViewState {
-    ai_state?: {data: Plotly.Data, layout: Plotly.Layout};
+interface NgvizAIStateChange {
+    UserRequest: string;
+    DataJson: string;
+    LayoutJson: string;
+    Errors: string[]
+}
+
+interface NgvizAIViewState {
+    StateChange?: NgvizAIStateChange;
+    StateChangeHistory: NgvizAIStateChange[]
     accumulatedData?: Plotly.Data;
     accumulatedLayout?: Plotly.Layout;
 }
 
-export default class NgvizAiDemonstrator implements INgviz<ViewState> {
+export default class NgvizAiDemonstrator implements INgviz<NgvizAIViewState> {
     // sizeDiv!: HTMLElement;
     // viewStateClickableDiv!: HTMLElement;
     // controlsDiv!: HTMLElement;
@@ -31,8 +39,8 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         private container: HTMLDivElement, 
         private editMode: boolean, 
         private settings: IObjectInspectorSpecification, 
-        private viewState: ViewState, 
-        private callbacks: INgvizCallbacks<ViewState>, 
+        private viewState: NgvizAIViewState, 
+        private callbacks: INgvizCallbacks<NgvizAIViewState>, 
         private modeState: INgvizModeState) {
         // this.sizeDiv = createElement('div', {}, `Its size <span>???</span>`);
         // this.viewStateClickableDiv = createElement('div', {}, 'This text been clicked <span>???</span> times, which will be persisted in view state.');
@@ -41,6 +49,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         // this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         // 
         // this.render();
+        this.reportAIErrors(this.viewState.StateChange);
         this.update();
     }
 
@@ -108,8 +117,12 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
 
-        const data_change = this.viewState?.ai_state?.data;
-        const layout_change = this.viewState?.ai_state?.layout;
+        if (!this.viewState.StateChangeHistory)
+            this.viewState.StateChangeHistory = [];
+        const data_change_json = (this.viewState?.StateChange?.DataJson != "" ? this.viewState?.StateChange?.DataJson : "{}") ?? "{}";
+        const data_change = JSON.parse(data_change_json);
+        const layout_change_json = (this.viewState?.StateChange?.LayoutJson != "" ? this.viewState?.StateChange?.LayoutJson : "{}") ?? "{}";
+        const layout_change = JSON.parse(layout_change_json);
 
         const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
         const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
@@ -120,13 +133,31 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
             this.viewState.accumulatedData = tmp_data[0] as Plotly.Data;
             this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
-            this.viewState.ai_state = undefined;
+            if (this.viewState.StateChange){
+                if (this.viewState.StateChangeHistory.length == 0 ||
+                    this.viewState.StateChangeHistory[this.viewState.StateChangeHistory.length-1].UserRequest != this.viewState.StateChange.UserRequest)
+                    this.viewState.StateChangeHistory.push(this.viewState.StateChange);
+            }
+            this.viewState.StateChange = undefined;
             this.callbacks.viewStateChanged(this.viewState);
         } else
             Plotly.newPlot(this.container, data, layout, config);
 
         this.createResetButton();
         this.callbacks.renderFinished();
+    }
+
+    private reportAIErrors(stateChange?: NgvizAIStateChange){
+        if (!stateChange)
+            return;
+
+        const ai_warnings = stateChange.Errors.map((error) => { 
+            return {message: error} as MessageWithReferences; 
+        });
+
+        this.callbacks.setErrorsAndWarnings({ warnings: ai_warnings }, HostDrawFlag.None);
+        //this.callbacks.setErrorsAndWarnings({ warnings: [{message: 'test warning on viewState change'}]}, HostDrawFlag.None);
+        stateChange.Errors = [];
     }
 
     private updateWithDebounce() {
