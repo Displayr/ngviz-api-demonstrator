@@ -1,4 +1,5 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, 
+    INgvizModeState, HostDrawFlag, addErrorToErrorsAndWarnings, MessageWithReferences } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 
 interface ViewState {
@@ -26,6 +27,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
     // private constructionComplete: boolean = false;
     private debounceTimer!: number;
+    hostDraw!: HostDrawFlag;
 
     constructor(
         private container: HTMLDivElement, 
@@ -41,6 +43,7 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         // this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         // 
         // this.render();
+        this.hostDraw = HostDrawFlag.None;
         this.update();
     }
 
@@ -50,6 +53,11 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }
 
     updateControls() {
+        if (this.hostDraw !== HostDrawFlag.None) {
+            this.callbacks.setErrorsAndWarnings({}, HostDrawFlag.None);
+        }
+        this.hostDraw = HostDrawFlag.None;
+        this.callbacks.setErrorsAndWarnings({}, this.hostDraw);
         this.callbacks.clearSettings();
 
         this.userInput = this.settings.textBox({
@@ -93,17 +101,6 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
         return data;
     }
 
-    /*applyDataChange() {
-        const txt = '{ "marker": {"color": "red" }}';
-        const data_change = JSON.parse(txt);
-        const tmp_data = {...data_change, ...this.getData() };
-        const tmp_data = {...data_change, ...this.getData() };
-        const invalid_layout = (Plotly as any).validate(tmp_data, {});
-        console.log(invalid_layout);
-        if (!invalid_layout)
-            Plotly.restyle(this.container, data_change as Plotly.Data);
-    }*/
-
     render() {
         this.clearContainer();
         const config = { displayModeBar: false } as Plotly.Config
@@ -122,8 +119,17 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
             this.viewState.accumulatedLayout = tmp_layout as Plotly.Layout;
             this.viewState.ai_state = undefined;
             this.callbacks.viewStateChanged(this.viewState);
-        } else
+        } else {
+            if (data_change || layout_change) {
+                var msg = 'Query was not understood';
+                const n_msg = invalid_data_or_layout.Length;
+                for (var i = 0; i < n_msg; i++)
+                    msg = msg + invalid_data_or_layout[i].message;
+                this.callbacks.setErrorsAndWarnings({ warnings: [{message: msg}] 
+                    }, this.hostDraw);
+            }
             Plotly.newPlot(this.container, data, layout, config);
+        }
 
         this.createResetButton();
         this.callbacks.renderFinished();
