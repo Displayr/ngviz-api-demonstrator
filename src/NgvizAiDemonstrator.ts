@@ -113,8 +113,8 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
 
         const data = [{...this.viewState.accumulatedData, ...this.getData()}] as Plotly.Data[];
         const layout = {...this.viewState.accumulatedLayout, ...this.getLayout()};
-        const tmp_data = [{...data_change, ...data[0] }] as Plotly.Data[];
-        const tmp_layout = {...layout_change, ...layout};
+        const tmp_data = [{...data[0], ...data_change }] as Plotly.Data[];
+        const tmp_layout = {...layout, ...layout_change};
         const invalid_data_or_layout = (Plotly as any).validate(tmp_data, tmp_layout);
         if ((data_change || layout_change) && !invalid_data_or_layout) {
             Plotly.newPlot(this.container, tmp_data, tmp_layout, config);
@@ -130,8 +130,9 @@ export default class NgvizAiDemonstrator implements INgviz<ViewState> {
     }
 
     private updateWithDebounce() {
-        clearTimeout(this.debounceTimer);
-        this.debounceTimer = window.setTimeout(() => this.update(), 100);
+        //**clearTimeout(this.debounceTimer);
+        //**this.debounceTimer = window.setTimeout(() => this.update(), 100);
+        this.update();
     }
 
     createResetButton() {
