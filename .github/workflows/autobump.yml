@@ -1,4 +1,8 @@
 name: autobump
+
+permissions:
+  contents: write
+
 on:
   push:
      branches:
@@ -7,6 +11,7 @@ on:
      types: [opened, labeled]
      branches:
        - master
+
 jobs:
   autobump:
     name: autobump
