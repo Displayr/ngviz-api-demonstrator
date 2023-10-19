@@ -36,7 +36,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.sizeDiv = createElement('div', {}, `Its size <span>???</span>`);
         this.viewStateClickableDiv = createElement('div', {}, 'This text been clicked <span>???</span> times, which will be persisted in view state.');
         this.controlsDiv = createElement('div', {}, 'The checkbox in the object inspector is <span>?</span>.');
-        this.ngvizSelectedDiv = createElement('div', {}, 'This ngviz is <span>???</span>selected in Displayr.');
+        this.ngvizSelectedDiv = createElement('div', {}, 'This ngviz is <span>not </span>selected in Displayr.');
         this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         this.dropBoxDataDiv = createElement('div', {class: "dropBoxData"}, '');
         this.render();
@@ -78,8 +78,6 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateClickCount();
 
         this.updateTextForCheckboxState();
-
-        this.selected(false);  // to give it an initial value
 
         this.subSelectableIsSelected = false;
         this.subSelectableDiv.addEventListener('click', (event) => {
