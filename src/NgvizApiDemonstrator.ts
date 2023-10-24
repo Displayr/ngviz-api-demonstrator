@@ -1,4 +1,4 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag, ObjectInspectorControlData, UserDataError, DataError, IErrorsAndWarnings, MessageWithReferences } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 import { createElement } from './util';
 
@@ -25,6 +25,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     hostDrawing?: IObjectInspectorControl<string>;
 
     private constructionComplete: boolean = false;
+    private dataErrors: MessageWithReferences[];
 
     constructor(
         private container: HTMLDivElement, 
@@ -33,6 +34,8 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         private viewState: ViewState, 
         private callbacks: INgvizCallbacks<ViewState>, 
         private modeState: INgvizModeState) {
+
+        this.dataErrors = [];
         this.sizeDiv = createElement('div', {}, `Its size <span>???</span>`);
         this.viewStateClickableDiv = createElement('div', {}, 'This text been clicked <span>???</span> times, which will be persisted in view state.');
         this.controlsDiv = createElement('div', {}, 'The checkbox in the object inspector is <span>?</span>.');
@@ -164,10 +167,13 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         }
         const nerrors = this.addNErrors?.getValue()!;
         const nwarnings = this.addNWarnings?.getValue()!;
-        this.callbacks.setErrorsAndWarnings({
-            errors: messages(nerrors).map(m => { return { message: m } }),
+
+        let errorsAndWarnings: IErrorsAndWarnings = {
+            errors: messages(nerrors).map(m => { return { message: m } }).concat(this.dataErrors), 
             warnings: messages(nwarnings).map(m => { return { message: m } })
-        }, this.hostDrawFromControl());
+        };
+
+        this.callbacks.setErrorsAndWarnings(errorsAndWarnings, this.hostDrawFromControl());
     }
 
     hostDrawFromControl(): HostDrawFlag {
@@ -189,8 +195,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     }
 
     updateDropBoxData() {
-        const data = this.dropBox?.getData();
+        const data = this.dropBox?.getData() ?? null;
+        const selected_inputs = this.dropBox?.getValue() ?? null;
         this.dropBoxDataDiv.textContent = data ? JSON.stringify(data) : '- No data selected in drop box -';
+        this.reportDataErrors(data, selected_inputs);
     }
 
     updateClickCount() {
@@ -213,4 +221,45 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     validateNgvizConstructor() {
         return NgvizApiDemonstrator;
     }
+
+    updateDropBoxErrors(){
+        const data = this.dropBox?.getData() ?? null;
+        const selected_inputs = this.dropBox?.getValue() ?? null;
+        this.reportDataErrors(data, selected_inputs);
+    }
+
+    reportDataErrors(input_data: ObjectInspectorControlData[] | null, input_guids: string[] | null){
+        if(!input_data || !input_guids){
+            return;
+        }
+
+        this.dataErrors = [];
+        let index = 0;
+
+        input_data.forEach((data) => {
+            if (this.isDataError(data) && !data.errorMessage.startsWith("IGNORE|")) {
+                
+                const data_guid = input_guids && data.errorMessage.includes('"')
+                    ? input_guids[index] 
+                    : undefined;
+                
+                
+                const error = new UserDataError(data.errorMessage, data_guid);
+                this.dataErrors.push(error.getMessageWithReferences());
+            }
+            index += 1;
+        });
+
+        if (this.dataErrors.length > 0){
+            this.refreshObjectInspector();
+        }
+    }
+
+    /**
+     * Type guard for DataError
+     */
+    isDataError(object: any): object is DataError {
+        return 'errorMessage' in object;
+    }
+    
 }
