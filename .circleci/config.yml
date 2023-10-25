@@ -33,7 +33,9 @@ jobs:
             - node_modules   
       - run:
           name: Run build
-          command: npm run build
+          command: |
+            npm run typecheck
+            npm run build
       - when:
           condition:
             equal: [ master, << pipeline.git.branch >> ]
