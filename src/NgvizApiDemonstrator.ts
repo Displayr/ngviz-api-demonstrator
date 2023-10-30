@@ -248,7 +248,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     updateListModifierData() {
         const data = this.listModifier?.getValueNullable();
-        this.listModifierDataDiv.textContent = data ? JSON.stringify(data) : '- No data selected in column selector -';
+        this.listModifierDataDiv.textContent = data ? JSON.stringify(data) : '- No data selected in list modifier -';
     }
 
     resizedOrDragged() {
