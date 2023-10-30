@@ -1,4 +1,4 @@
-import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag } from '@displayr/ngviz';
+import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag, IListModifiable } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 import { createElement } from './util';
 
@@ -16,6 +16,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     ngvizSelectedDiv!: HTMLElement;
     subSelectableDiv!: HTMLElement;
     dropBoxDataDiv!: HTMLElement;
+    listModifierDataDiv!: HTMLElement;
     subSelectableIsSelected = false;
     checkbox?: IObjectInspectorControl<boolean>;
     addNErrors?: IObjectInspectorControl<number>;
@@ -23,6 +24,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
     colourPicker?: IObjectInspectorControl<string>;
     dropBox?: IObjectInspectorControl<string[]>;
     hostDrawing?: IObjectInspectorControl<string>;
+    listModifier?: IObjectInspectorControl<IListModifiable[]>;
 
     private constructionComplete: boolean = false;
 
@@ -39,6 +41,7 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.ngvizSelectedDiv = createElement('div', {}, 'This ngviz is <span>not </span>selected in Displayr.');
         this.subSelectableDiv = createElement('div', {}, 'You can sub-select this div by clicking on it, in which case a new control will appear in the object inspector.  Click elsewhere to deselect.')
         this.dropBoxDataDiv = createElement('div', {class: "dropBoxData"}, '');
+        this.listModifierDataDiv = createElement('div', {}, '');
         this.render();
     }
 
@@ -95,9 +98,10 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         this.updateColourForSelection();
 
         this.updateDropBoxData();
+        this.updateListModifierData();
 
         const plotly_div = createElement('div', {style: "height:150px"}, '');
-        this.container.append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv);
+        this.container.append(mode_div, this.sizeDiv, font_div, colours_div, styled_div, this.viewStateClickableDiv, this.controlsDiv, this.ngvizSelectedDiv, this.subSelectableDiv, plotly_div, this.dropBoxDataDiv, this.listModifierDataDiv);
 
         var data = [{
             x: [1, 2, 3],
@@ -153,6 +157,43 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
         const sub_selection_context = this.settings.getSubContext('SubSelection');
         this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: this.subSelectableIsSelected,
                                                                change: () => this.updateColourForSelection()});
+        this.listModifier = this.settings.listModifier({
+            label: 'Columns',
+            page: 'Inputs',
+            group: 'Data Source',
+            change: () => this.updateListModifierData(),
+            default_value: [
+            {
+                originalName: 'Coke Zero',
+                originalIndex: 0,
+                visible: true,
+                name: 'Coke One',
+                index: 0, 
+            },
+            {
+                originalName: 'Pepsi Max',
+                originalIndex: 1,
+                visible: false,
+                name: 'Peke Zero',
+                index: 1,
+            },
+            {
+                originalName: 'Coke',
+                originalIndex: 2,
+                visible: false,
+                name: 'Conk',
+                index: 2,
+            },
+            {
+                originalName: 'Pepsi',
+                originalIndex: 3,
+                visible: false,
+                name: 'Bepis',
+                index: 3,
+            },
+            ]
+        });
+
         this.callbacks.updateObjectInspector();
         this.updateErrorsAndWarnings();
         this.renderFinished();
@@ -203,6 +244,11 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     updateColourForSelection() {
         this.subSelectableDiv.style.setProperty('color', this.colourPicker!.getValue());
+    }
+
+    updateListModifierData() {
+        const data = this.listModifier?.getValueNullable();
+        this.listModifierDataDiv.textContent = data ? JSON.stringify(data) : '- No data selected in column selector -';
     }
 
     resizedOrDragged() {
