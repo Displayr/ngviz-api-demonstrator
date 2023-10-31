@@ -163,34 +163,22 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
             group: 'Data Source',
             change: () => this.updateListModifierData(),
             default_value: [
-            {
-                originalName: 'Coke Zero',
-                originalIndex: 0,
-                visible: true,
-                name: 'Coke One',
-                index: 0, 
-            },
-            {
-                originalName: 'Pepsi Max',
-                originalIndex: 1,
-                visible: false,
-                name: 'Peke Zero',
-                index: 1,
-            },
-            {
-                originalName: 'Coke',
-                originalIndex: 2,
-                visible: false,
-                name: 'Conk',
-                index: 2,
-            },
-            {
-                originalName: 'Pepsi',
-                originalIndex: 3,
-                visible: false,
-                name: 'Bepis',
-                index: 3,
-            },
+                {
+                    visible: true,
+                    name: 'Coke Zero',
+                },
+                {
+                    visible: false,
+                    name: 'Pepsi Max',
+                },
+                {
+                    visible: false, 
+                    name: 'Coke',
+                },
+                {
+                    visible: false,
+                    name: 'Pepsi',
+                },
             ]
         });
 
