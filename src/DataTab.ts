@@ -41,7 +41,7 @@ export function constructDataTab(
             group: 'Data Source',
             ...config.switchRowColumn,
         });
-        controls = { ...controls, switchRowColumn: switch_rows };
+        controls.switchRowColumn= switch_rows;
     }
 
     if (config?.showNetSum) {
@@ -52,7 +52,7 @@ export function constructDataTab(
             group: 'Column selection',
             ...config.showNetSum,
         });
-        controls = { ...controls, showNetSum: show_net_sum };
+        controls.showNetSum = show_net_sum;
     }
 
     if (config?.labelModifier) {
@@ -62,7 +62,7 @@ export function constructDataTab(
             group: 'Column selection',
             ...config.labelModifier,
         });
-        controls = { ...controls, labelModifier: list_modifier };
+        controls.labelModifier = list_modifier;
     }
 
     return controls;
