@@ -22,7 +22,7 @@
     "typecheck:watch": "npm run typecheck -- --watch"
   },
   "devDependencies": {
-    "@displayr/ngviz": "^11.0.0",
+    "@displayr/ngviz": "^13.0.0",
     "@types/node": "^18.6.2",
     "@types/plotly.js-dist-min": "^2.3.0",
     "concurrently": "^8.2.1",
