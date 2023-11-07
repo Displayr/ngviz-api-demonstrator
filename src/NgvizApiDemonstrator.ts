@@ -1,6 +1,7 @@
 import { INgviz, INgvizCallbacks, IObjectInspectorSpecification, IObjectInspectorControl, INgvizModeState, HostDrawFlag, IListModifiable } from '@displayr/ngviz';
 import * as Plotly from 'plotly.js-dist-min';
 import { createElement } from './util';
+import { constructDataTab } from './DataTab';
 
 interface ViewState {
     clickCount?: number;
@@ -129,62 +130,79 @@ export default class NgvizApiDemonstrator implements INgviz<ViewState> {
 
     refreshObjectInspector() {
         this.callbacks.clearSettings();
-        this.checkbox = this.settings.checkBox({
-            label: 'Checkbox',
-            page: 'Inputs',
-            group: 'Data Source',
-            change: () => this.updateTextForCheckboxState(),
-        });
-        const dropbox_types_text = this.settings.textBox({
-            label: 'Types available in dropbox',
-            prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types',
-            change: () => this.refreshObjectInspector(),
-        });
-        const types_available: string = dropbox_types_text.getValue() || 'table';
-        this.dropBox = this.settings.dropBox({
-            label: 'Dropdown (called primaryData)',
-            name: 'primaryData',
-            page: 'Inputs',
-            group: 'Data Source',
-            multi: true,
-            types: types_available.split(';').map(s => s.trim()).filter(Boolean),
-            data_change: () => this.updateDropBoxData(),
-            change: () => {},
-        });
+
+        this.updateDataTab();
         this.hostDrawing = this.settings.comboBox({label: 'Host should draw', alternatives: ['None', 'EncouragementToSelectData', 'Errors'], default_value: 'None', change: () => this.refreshObjectInspector()});
         this.addNErrors = this.settings.numericUpDown({label: 'Add this number of errors', default_value: 0, change: () => this.refreshObjectInspector()});
         this.addNWarnings = this.settings.numericUpDown({label: 'Add this number of warnings', default_value: 0, change: () => this.refreshObjectInspector()});
         const sub_selection_context = this.settings.getSubContext('SubSelection');
         this.colourPicker = sub_selection_context.colorPicker({label: 'Color of selected text', visible: this.subSelectableIsSelected,
                                                                change: () => this.updateColourForSelection()});
-        this.listModifier = this.settings.listModifier({
-            label: 'Columns',
-            page: 'Inputs',
-            group: 'Data Source',
-            change: () => this.updateListModifierData(),
-            default_value: [
-                {
-                    visible: true,
-                    name: 'Coke Zero',
-                },
-                {
-                    visible: false,
-                    name: 'Pepsi Max',
-                },
-                {
-                    visible: false, 
-                    name: 'Coke',
-                },
-                {
-                    visible: false,
-                    name: 'Pepsi',
-                },
-            ]
-        });
 
         this.callbacks.updateObjectInspector();
         this.updateErrorsAndWarnings();
         this.renderFinished();
+    }
+
+    updateDataTab() {
+        const dropbox_types_text = this.settings.textBox({
+            label: 'Types available in dropbox',
+            prompt: 'See https://wiki.q-researchsoftware.com/wiki/R_GUI_Controls#DropBox_Types',
+            change: () => this.refreshObjectInspector(),
+        });
+        const types_available: string = dropbox_types_text.getValue() || 'table';
+        const { inputSelector, showNetSum, switchRowColumn, labelModifier } = constructDataTab({
+            inputSelector: {
+                multi: true,
+                types: types_available.split(';').map(s => s.trim()).filter(Boolean),
+                data_change: () => this.updateDropBoxData(),
+                change: () => {},
+            },
+            switchRowColumn: {
+                default_value: false,
+                change: () => this.updateTextForCheckboxState(),
+            },
+            showNetSum: {
+                alternatives: ['Include', 'Exclude', 'Exclude all duplicate categories'],
+                default_value: 'Include',
+                prompt: 'Show NET column, which is the total of all other columns',
+                change: () => {},
+            },
+            labelModifier: {
+                label: 'Columns',
+                change: () => this.updateListModifierData(),
+                default_value: [
+                    {
+                        visible: true,
+                        name: 'Coke Zero',
+                        originalName: 'Coke Zero',
+                        originalIndex: 0,
+                    },
+                    {
+                        visible: true,
+                        name: 'Pepsi Max',
+                        originalName: 'Pepsi Max',
+                        originalIndex: 1,
+                    },
+                    {
+                        visible: true, 
+                        name: 'Coke',
+                        originalName: 'Coke',
+                        originalIndex: 2,
+                    },
+                    {
+                        visible: true,
+                        name: 'Pepsi',
+                        originalName: 'Pepsi',
+                        originalIndex: 3,
+                    },
+                ],
+            },
+        }, this.settings);
+
+        this.dropBox = inputSelector;
+        this.checkbox = switchRowColumn;
+        this.listModifier = labelModifier;
     }
 
     updateErrorsAndWarnings() {
