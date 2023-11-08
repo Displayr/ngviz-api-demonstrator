@@ -20,12 +20,11 @@ export function constructDataTab(
     config: DataTabConfig,
     settings: IObjectInspectorSpecification,
 ): DataTabControls {
-    const control_set = new ControlSet();
-    control_set.visibility = true;
+    const control_set = new ControlSet(true);
     // This page will eventually be called 'Data' instead of 'Inputs'
     const page = 'Inputs';
     const data_control_creator = new ControlCreator(settings, { page, group: 'Data Source' }, undefined, control_set);
-    const col_selection_control_creator = new ControlCreator(settings, { page, group: 'Column selection' }, undefined, control_set);
+    const col_selection_control_creator = data_control_creator.addDefaults({ group: 'Column selection' });
 
     const primary_data = data_control_creator.dropBox({
         name: 'primaryData',
