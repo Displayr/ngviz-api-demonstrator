@@ -36,7 +36,7 @@ export function constructDataTab(
 
     if (config?.switchRowColumn) {
         const switch_rows = data_control_creator.checkBox({
-            name: 'switchRowsColumns',
+            name: 'dataTab_2_switchRowsAndColumns',
             label: 'Switch rows/columns',
             ...config.switchRowColumn,
         });
